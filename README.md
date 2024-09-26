@@ -47,7 +47,7 @@ function _dump($value, ...$values)
     // dump($value, ...$values);
 
     array_unshift($values, $value);
-    $strings = array_map([ Lib::class, 'php_dump' ], $values);
+    $strings = array_map([ \Gzhegow\Pipeline\Lib::class, 'php_dump' ], $values);
     echo implode(" ", $strings) . PHP_EOL;
 
     return $value;
@@ -104,7 +104,7 @@ $pipelinePrevious = (function () use ($factory) {
     _dump('');
     // string(61) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::__invoke"
     // string(61) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::__invoke"
-    // { string(10) "[ RESULT ]" } { string(10) "any result" }
+    // { string(10) "[ RESULT ]" } { string(12) "any result 2" }
     // { string(0) "" }
 
     return $pipeline;
