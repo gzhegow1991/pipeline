@@ -27,7 +27,5 @@
 
         "sort-packages": false
     },
-    "require-dev": {
-        "symfony/var-dumper": "^5.4"
-    }
+    "require-dev": { }
 }
