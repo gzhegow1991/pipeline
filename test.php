@@ -1,18 +1,3 @@
-# Pipeline
-
-Первая реализация конвеера действий с возможностью добавлять Middleware и Fallback, реализация паттерн "цепочка обязанностей"
-
-Нужно в роутерах, в последствии - в асинхронном выполнении тоже, только требует доработки. Когда-нибудь.
-
-## Установка
-
-```
-composer require gzhegow/pipeline;
-```
-
-## Пример
-
-```php
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
@@ -269,4 +254,3 @@ $pipelinePrevious = (function () use ($factory) {
     // { string(10) "[ RESULT ]" } { NULL }
     // { string(0) "" }
 })();
-```

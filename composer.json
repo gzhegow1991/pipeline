@@ -1,0 +1,33 @@
+{
+    "name": "gzhegow/pipeline",
+    "type": "library",
+
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+
+    "authors": [
+        {
+            "name": "gzhegow",
+            "email": "6562680@gmail.com"
+        }
+    ],
+
+    "autoload": {
+        "psr-4": {
+            "Gzhegow\\Pipeline\\": "src/"
+        }
+    },
+
+    "require": {
+        "php": "^7.2|^8.0"
+    },
+
+    "config": {
+        "optimize-autoloader": true,
+
+        "sort-packages": false
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^5.4"
+    }
+}
