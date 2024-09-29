@@ -258,10 +258,6 @@ _test(function () use ($factory) {
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
-    // string(71) "Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::__invoke"
-    // string(75) "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke"
-    // { string(10) "[ RESULT ]" } { string(83) "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result." }
-    // { string(0) "" }
 }, <<<HEREDOC
 string(71) "Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::__invoke"
 string(75) "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke"
