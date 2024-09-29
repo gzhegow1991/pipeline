@@ -26,6 +26,5 @@
         "optimize-autoloader": true,
 
         "sort-packages": false
-    },
-    "require-dev": { }
+    }
 }

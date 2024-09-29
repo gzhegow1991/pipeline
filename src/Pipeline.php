@@ -17,7 +17,7 @@ class Pipeline implements PipelineInterface
     /**
      * @var int
      */
-    protected $middlewareId = 0;
+    protected $middlewareIdLast = 0;
     /**
      * @var GenericMiddleware[]
      */
@@ -26,7 +26,7 @@ class Pipeline implements PipelineInterface
     /**
      * @var int
      */
-    protected $actionId = 0;
+    protected $actionIdLast = 0;
     /**
      * @var GenericAction[]
      */
@@ -35,7 +35,7 @@ class Pipeline implements PipelineInterface
     /**
      * @var int
      */
-    protected $fallbackId = 0;
+    protected $fallbackIdLast = 0;
     /**
      * @var GenericFallback[]
      */
@@ -96,7 +96,7 @@ class Pipeline implements PipelineInterface
 
     public function addMiddleware(GenericMiddleware $middleware) : int
     {
-        $id = ++$this->middlewareId;
+        $id = ++$this->middlewareIdLast;
 
         $this->middlewareList[ $id ] = $middleware;
 
@@ -135,7 +135,7 @@ class Pipeline implements PipelineInterface
 
     public function addAction(GenericAction $action) : int
     {
-        $id = ++$this->actionId;
+        $id = ++$this->actionIdLast;
 
         $this->actionList[ $id ] = $action;
 
@@ -174,7 +174,7 @@ class Pipeline implements PipelineInterface
 
     public function addFallback(GenericFallback $fallback) : int
     {
-        $id = ++$this->fallbackId;
+        $id = ++$this->fallbackIdLast;
 
         $this->fallbackList[ $id ] = $fallback;
 
@@ -191,25 +191,25 @@ class Pipeline implements PipelineInterface
         reset($this->actionList);
         reset($this->fallbackList);
 
-        $resultArray = [];
+        $outputArray = [];
 
         if (count($this->middlewareList)) {
-            $resultArray = $this->doCurrentMiddleware($result, $input, $context);
+            $outputArray = $this->doCurrentMiddleware($result, $input, $context);
 
         } elseif (count($this->actionList)) {
-            $resultArray = $this->doActions($result, $input, $context);
+            $outputArray = $this->doActions($result, $input, $context);
         }
 
-        $result = null;
-        if (count($resultArray)) {
-            [ $result ] = $resultArray;
+        $output = null;
+        if (count($outputArray)) {
+            [ $output ] = $outputArray;
         }
 
         if ($this->throwable) {
             throw $this->throwable;
         }
 
-        return $result;
+        return $output;
     }
 
     public function next($result = null, $input = null, $context = null) // : mixed
@@ -220,7 +220,7 @@ class Pipeline implements PipelineInterface
             $resultArray = [ $result ];
         }
 
-        if ($this->middlewareId > key($this->middlewareList)) {
+        if ($this->middlewareIdLast > key($this->middlewareList)) {
             $resultArray = $this->doNextMiddleware($result, $input, $context);
 
         } elseif (count($this->actionList)) {
@@ -322,18 +322,18 @@ class Pipeline implements PipelineInterface
     protected function doActions($result = null, $input = null, $context = null) : array
     {
         do {
-            $resultArray = $this->doCurrentAction($result, $input, $context);
+            $outputArray = $this->doCurrentAction($result, $input, $context);
 
-            next($this->actionList);
-
-            if ($this->actionId > key($this->actionList)) {
-                if (count($resultArray)) {
-                    [ $result ] = $resultArray;
+            if ($this->actionIdLast > key($this->actionList)) {
+                if (count($outputArray)) {
+                    [ $result ] = $outputArray;
                 }
             }
+
+            next($this->actionList);
         } while ( null !== key($this->actionList) );
 
-        return $resultArray;
+        return $outputArray;
     }
 
     /**
@@ -389,18 +389,18 @@ class Pipeline implements PipelineInterface
     protected function doFallbacks($result = null, $input = null, $context = null) : array
     {
         do {
-            $resultArray = $this->doCurrentFallback($result, $input, $context);
+            $outputArray = $this->doCurrentFallback($result, $input, $context);
 
-            next($this->fallbackList);
-
-            if ($this->fallbackId > key($this->fallbackList)) {
-                if (count($resultArray)) {
-                    [ $result ] = $resultArray;
+            if ($this->fallbackIdLast > key($this->fallbackList)) {
+                if (count($outputArray)) {
+                    [ $result ] = $outputArray;
                 }
             }
+
+            next($this->fallbackList);
         } while ( null !== key($this->fallbackList) );
 
-        return $resultArray;
+        return $outputArray;
     }
 
     /**

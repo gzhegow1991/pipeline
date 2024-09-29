@@ -54,10 +54,6 @@ function _dump($value, ...$values)
 }
 
 
-// > todo-gzhegow, что-то придумать чтобы ошибки вываливались в stderr, но программа работала дальше
-// Lib::php_trigger_error_enabled(true);
-
-
 // > сначала всегда факторка
 $factory = new \Gzhegow\Pipeline\PipelineFactory();
 

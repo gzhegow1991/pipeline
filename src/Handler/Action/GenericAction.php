@@ -35,6 +35,8 @@ class GenericAction extends GenericHandler
      */
     public static function tryFrom($from) : ?object
     {
+        Lib::php_errors_start($b);
+
         $instance = null
             ?? static::fromStatic($from)
             ?? static::fromPipeline($from)
@@ -42,6 +44,16 @@ class GenericAction extends GenericHandler
             ?? static::fromMethod($from)
             ?? static::fromInvokable($from)
             ?? static::fromFunction($from);
+
+        $errors = Lib::php_errors_end($b);
+
+        if (null === $instance) {
+            $last = null;
+            foreach ( $errors as $error ) {
+                $last = new LogicException($error, null, $last);
+            }
+            throw $last;
+        }
 
         return $instance;
     }
@@ -53,7 +65,7 @@ class GenericAction extends GenericHandler
     protected static function fromPipeline($pipeline) : ?object
     {
         if (! is_a($pipeline, PipelineInterface::class)) {
-            return Lib::php_trigger_error([ 'The `from` should be instance of: ' . PipelineInterface::class, $pipeline ]);
+            return Lib::php_error([ 'The `from` should be instance of: ' . PipelineInterface::class, $pipeline ]);
         }
 
         $instance = new static();
