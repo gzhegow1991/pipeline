@@ -31,9 +31,6 @@ set_exception_handler(function ($e) {
 // > добавляем несколько функция для тестирования
 function _dump($value, ...$values)
 {
-    // // requires `symfony/var-dumper`
-    // dump($value, ...$values);
-
     array_unshift($values, $value);
 
     $strings = array_map(
@@ -59,7 +56,16 @@ function _test(\Closure $fn, $expected = null)
     $output = preg_replace('/' . preg_quote('\\', '/') . '+/', '\\', $output);
 
     if ($expected !== $output) {
-        throw new \RuntimeException('Test failed.');
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+
+        $e = new \Gzhegow\Pipeline\Exception\RuntimeException('Test failed.');
+
+        (function ($file, $line) {
+            $this->file = $file;
+            $this->line = $line;
+        })->call($e, $trace[ 0 ][ 'file' ], $trace[ 0 ][ 'line' ]);
+
+        throw $e;
     }
 
     echo 'Test OK.' . PHP_EOL;
@@ -80,7 +86,7 @@ _test(function () use ($factory) {
     // > добавляем действия в конвеер
     $pipeline
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
     ;
 
     // > запускаем конвеер
@@ -91,8 +97,8 @@ _test(function () use ($factory) {
     _dump('');
 }, <<<HEREDOC
 string(60) "Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke"
-string(60) "Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke"
-"[ RESULT ]" "Gzhegow\\Pipeline\\Handler\\Demo\\Action\\Demo1stAction::__invoke result."
+string(60) "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke"
+"[ RESULT ]" "Gzhegow\\Pipeline\\Handler\\Demo\\Action\\Demo2ndAction::__invoke result."
 ""
 HEREDOC
 );
@@ -105,21 +111,20 @@ _test(function () use ($factory) {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
     ;
 
     // > запускаем конвеер
     $myInput = 'any data 2';
     $myContext = (object) [];
-    $myResult = 'any result 2';
-    $result = $pipeline->run($myInput, $myContext, $myResult);
+    $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 }, <<<HEREDOC
-string(61) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::__invoke"
-string(61) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::__invoke"
-"[ RESULT ]" "any result 2"
+string(74) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke"
+string(74) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke"
+"[ RESULT ]" "any data 2"
 ""
 HEREDOC
 );
@@ -132,8 +137,8 @@ _test(function () use ($factory) {
 
     // > добавляем действия в конвеер
     $pipelineChild
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
     ;
 
     // > создаем родительский конвеер
@@ -141,24 +146,23 @@ _test(function () use ($factory) {
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     $pipeline
-        ->action($pipelineChild) // этот конвеер просто передаст $result дальше
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class) // на этом этапе результат будет заменен
-        ->action($pipelineChild) // этот конвеер передаст измененный $result дальше
+        ->pipeline($pipelineChild)                                             // этот конвеер просто передаст $result дальше
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)   // на этом этапе результат будет заменен
+        ->pipeline($pipelineChild) // этот конвеер передаст измененный $result дальше
     ;
 
     // > запускаем конвеер
     $myInput = 'any data 3';
     $myContext = (object) [];
-    $myResult = 'any result 3';
-    $result = $pipeline->run($myInput, $myContext, $myResult);
+    $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 }, <<<HEREDOC
-string(61) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::__invoke"
-string(61) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::__invoke"
+string(74) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke"
+string(74) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke"
 string(60) "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke"
-string(61) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::__invoke"
-string(61) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassAction::__invoke"
+string(74) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke"
+string(74) "Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke"
 "[ RESULT ]" "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
 ""
 HEREDOC
@@ -294,13 +298,18 @@ _test(function () use ($factory) {
     try {
         $result = $pipeline->run($myInput, $myContext);
     }
-    catch ( \Throwable $e ) {
+    catch ( \Gzhegow\Pipeline\Exception\Exception\PipelineException $e ) {
         _dump('[ CATCH ]', get_class($e), $e->getMessage());
+
+        foreach ( $e->getPreviousList() as $ee ) {
+            _dump('[ CATCH ]', get_class($ee), $ee->getMessage());
+        }
     }
     _dump('[ RESULT ]', $result);
     _dump('');
 }, <<<HEREDOC
 string(66) "Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke"
+"[ CATCH ]" "Gzhegow\Pipeline\Exception\Exception\PipelineException" "Unhandled exception occured during processing pipeline"
 "[ CATCH ]" "Gzhegow\Pipeline\Exception\Exception" "Hello, World!"
 "[ RESULT ]" NULL
 ""

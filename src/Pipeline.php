@@ -2,13 +2,24 @@
 
 namespace Gzhegow\Pipeline;
 
+use Gzhegow\Pipeline\Pipe\Pipe;
+use Gzhegow\Pipeline\Exception\RuntimeException;
 use Gzhegow\Pipeline\Handler\Action\GenericAction;
 use Gzhegow\Pipeline\Handler\Fallback\GenericFallback;
 use Gzhegow\Pipeline\Handler\Middleware\GenericMiddleware;
+use Gzhegow\Pipeline\Exception\Exception\PipelineException;
 
 
 class Pipeline implements PipelineInterface
 {
+    const LIST_PIPE = [
+        Pipe::TYPE_PIPELINE   => 'pipelineList',
+        Pipe::TYPE_MIDDLEWARE => 'middlewareList',
+        Pipe::TYPE_ACTION     => 'actionList',
+        Pipe::TYPE_FALLBACK   => 'fallbackList',
+    ];
+
+
     /**
      * @var PipelineProcessorInterface
      */
@@ -17,51 +28,83 @@ class Pipeline implements PipelineInterface
     /**
      * @var int
      */
-    protected $middlewareIdLast = 0;
+    protected $lastPipeId = -1;
     /**
-     * @var GenericMiddleware[]
+     * @var array<int, Pipe>
      */
-    protected $middlewareList = [];
+    protected $pipeList = [];
+
+    /**
+     * @var bool
+     */
+    protected $hasMiddlewares = false;
 
     /**
      * @var int
      */
-    protected $actionIdLast = 0;
+    protected $runtimePipeId = -1;
     /**
-     * @var GenericAction[]
+     * @var Pipe
      */
-    protected $actionList = [];
+    protected $runtimePipeCurrentPipeline;
+    /**
+     * @var Pipe
+     */
+    protected $runtimePipeCurrentMiddleware;
+    /**
+     * @var Pipe
+     */
+    protected $runtimePipeCurrentAction;
+    /**
+     * @var Pipe
+     */
+    protected $runtimePipeCurrentFallback;
 
     /**
-     * @var int
+     * @var mixed
      */
-    protected $fallbackIdLast = 0;
-    /**
-     * @var GenericFallback[]
-     */
-    protected $fallbackList = [];
+    protected $runtimeInputOriginal;
 
     /**
-     * @var GenericMiddleware
+     * @var \Throwable[]
      */
-    protected $middleware;
-    /**
-     * @var GenericAction
-     */
-    protected $action;
-    /**
-     * @var GenericFallback
-     */
-    protected $fallback;
-    /**
-     * @var \Throwable
-     */
-    protected $throwable;
+    protected $runtimeThrowables = [];
 
 
     public function __construct(PipelineProcessorInterface $processor)
     {
         $this->processor = $processor;
+    }
+
+
+    public function pipelines(array $pipelines) // : static
+    {
+        foreach ( $pipelines as $pipeline ) {
+            $this->pipeline($pipeline);
+        }
+
+        return $this;
+    }
+
+    public function pipeline($pipeline) // : static
+    {
+        $this->addPipeline($pipeline);
+
+        return $this;
+    }
+
+    public function addPipeline(self $pipeline) : int
+    {
+        $id = ++$this->lastPipeId;
+
+        $pipelineChild = clone $pipeline;
+        $pipelineChild->doReset();
+
+        $pipe = new Pipe(Pipe::TYPE_PIPELINE, $pipelineChild);
+
+        $this->pipeList[ $id ] = $pipe;
+
+        return $id;
     }
 
 
@@ -83,22 +126,15 @@ class Pipeline implements PipelineInterface
         return $this;
     }
 
-    public function addMiddlewares(array $middlewares) : array
-    {
-        $ids = [];
-
-        foreach ( $middlewares as $middleware ) {
-            $ids[] = $this->addMiddleware($middleware);
-        }
-
-        return $ids;
-    }
-
     public function addMiddleware(GenericMiddleware $middleware) : int
     {
-        $id = ++$this->middlewareIdLast;
+        $id = ++$this->lastPipeId;
 
-        $this->middlewareList[ $id ] = $middleware;
+        $pipe = new Pipe(Pipe::TYPE_MIDDLEWARE, null, $middleware);
+
+        $this->pipeList[ $id ] = $pipe;
+
+        $this->hasMiddlewares = true;
 
         return $id;
     }
@@ -122,22 +158,13 @@ class Pipeline implements PipelineInterface
         return $this;
     }
 
-    public function addActions(array $actions) : array
-    {
-        $ids = [];
-
-        foreach ( $actions as $action ) {
-            $ids[] = $this->addAction($action);
-        }
-
-        return $ids;
-    }
-
     public function addAction(GenericAction $action) : int
     {
-        $id = ++$this->actionIdLast;
+        $id = ++$this->lastPipeId;
 
-        $this->actionList[ $id ] = $action;
+        $pipe = new Pipe(Pipe::TYPE_ACTION, null, $action);
+
+        $this->pipeList[ $id ] = $pipe;
 
         return $id;
     }
@@ -161,22 +188,13 @@ class Pipeline implements PipelineInterface
         return $this;
     }
 
-    public function addFallbacks(array $fallbacks) : array
-    {
-        $ids = [];
-
-        foreach ( $fallbacks as $fallback ) {
-            $ids[] = $this->addFallback($fallback);
-        }
-
-        return $ids;
-    }
-
     public function addFallback(GenericFallback $fallback) : int
     {
-        $id = ++$this->fallbackIdLast;
+        $id = ++$this->lastPipeId;
 
-        $this->fallbackList[ $id ] = $fallback;
+        $pipe = new Pipe(Pipe::TYPE_FALLBACK, null, $fallback);
+
+        $this->pipeList[ $id ] = $pipe;
 
         return $id;
     }
@@ -185,264 +203,352 @@ class Pipeline implements PipelineInterface
     /**
      * @throws \Throwable
      */
-    public function run($input = null, $context = null, $result = null) // : mixed
+    public function run($input = null, $context = null) // : mixed
     {
-        reset($this->middlewareList);
-        reset($this->actionList);
-        reset($this->fallbackList);
-
-        $outputArray = [];
-
-        if (count($this->middlewareList)) {
-            $outputArray = $this->doCurrentMiddleware($result, $input, $context);
-
-        } elseif (count($this->actionList)) {
-            $outputArray = $this->doActions($result, $input, $context);
-        }
+        $outputArray = $this->doRun($input, $context);
 
         $output = null;
         if (count($outputArray)) {
             [ $output ] = $outputArray;
         }
 
-        if ($this->throwable) {
-            throw $this->throwable;
+        return $output;
+    }
+
+    public function next($input = null, $context = null) // : mixed
+    {
+        $outputArray = $this->doNext($input, $context);
+
+        $output = null;
+        if (count($outputArray)) {
+            [ $output ] = $outputArray;
         }
 
         return $output;
     }
 
-    public function next($result = null, $input = null, $context = null) // : mixed
-    {
-        $resultArray = [];
-
-        if (null !== $result) {
-            $resultArray = [ $result ];
-        }
-
-        if ($this->middlewareIdLast > key($this->middlewareList)) {
-            $resultArray = $this->doNextMiddleware($result, $input, $context);
-
-        } elseif (count($this->actionList)) {
-            $resultArray = $this->doActions($result, $input, $context);
-        }
-
-        if (count($resultArray)) {
-            [ $result ] = $resultArray;
-        }
-
-        return $result;
-    }
-
-
-    protected function getCurrentMiddleware() : ?GenericMiddleware
-    {
-        $this->middleware = null;
-
-        if (null !== ($id = key($this->middlewareList))) {
-            return $this->middleware = $this->middlewareList[ $id ];
-        }
-
-        return null;
-    }
-
-    protected function getCurrentAction() : ?GenericAction
-    {
-        $this->action = null;
-
-        if (null !== ($id = key($this->actionList))) {
-            return $this->action = $this->actionList[ $id ];
-        }
-
-        return null;
-    }
-
-    protected function getCurrentFallback() : ?GenericFallback
-    {
-        $this->fallback = null;
-
-        if (null !== ($id = key($this->fallbackList))) {
-            return $this->fallback = $this->fallbackList[ $id ];
-        }
-
-        return null;
-    }
-
 
     /**
-     * @return array{ 0?: mixed }
+     * @throws \Throwable
      */
-    protected function doNextMiddleware($result = null, $input = null, $context = null) : array
+    protected function doRun($input = null, $context = null) : array
     {
-        next($this->middlewareList);
+        $this->doReset();
 
-        $resultArray = $this->doCurrentMiddleware($result, $input, $context);
+        $this->runtimeInputOriginal = $input;
 
-        return $resultArray;
-    }
+        $output = $input;
+        $outputArray = [];
+        while ( $pipe = $this->selectNextPipe() ) {
+            $outputArray = $this->doPipe($pipe, $output, $context);
 
-    /**
-     * @return array{ 0?: mixed }
-     */
-    protected function doCurrentMiddleware($result = null, $input = null, $context = null) : array
-    {
-        $middleware = $this->getCurrentMiddleware();
-
-        if (null === $middleware) {
-            return [];
+            if (count($outputArray)) {
+                [ $output ] = $outputArray;
+            }
         }
 
-        if ($this->throwable) {
-            return [];
-        }
-
-        try {
-            $resultArray = $this->processor->callMiddleware(
-                $this->middleware,
-                $this,
-                $result, $input, $context
+        if ($this->runtimeThrowables) {
+            $e = new PipelineException(
+                'Unhandled exception occured during processing pipeline', -1
             );
-        }
-        catch ( \Throwable $e ) {
-            $this->throwable = $e;
 
-            end($this->middlewareList);
-            end($this->actionList);
-
-            $resultArray = $this->doCurrentFallback();
-        }
-
-        return $resultArray;
-    }
-
-
-    /**
-     * @return array{ 0?: mixed }
-     */
-    protected function doActions($result = null, $input = null, $context = null) : array
-    {
-        do {
-            $outputArray = $this->doCurrentAction($result, $input, $context);
-
-            if ($this->actionIdLast > key($this->actionList)) {
-                if (count($outputArray)) {
-                    [ $result ] = $outputArray;
-                }
+            foreach ( $this->runtimeThrowables as $ee ) {
+                $e->addPrevious($ee);
             }
 
-            next($this->actionList);
-        } while ( null !== key($this->actionList) );
+            throw $e;
+        }
 
         return $outputArray;
     }
 
-    /**
-     * @return array{ 0?: mixed }
-     */
-    protected function doNextAction($result = null, $input = null, $context = null) : array
+    protected function doReset() : void
     {
-        next($this->actionList);
+        $this->runtimePipeId = -1;
+        $this->runtimePipeCurrentPipeline = null;
+        $this->runtimePipeCurrentMiddleware = null;
+        $this->runtimePipeCurrentAction = null;
+        $this->runtimePipeCurrentFallback = null;
 
-        $resultArray = $this->doCurrentAction($result, $input, $context);
+        $this->runtimeInputOriginal = null;
 
-        return $resultArray;
+        $this->runtimeThrowables = [];
     }
 
-    /**
-     * @return array{ 0?: mixed }
-     */
-    protected function doCurrentAction($result = null, $input = null, $context = null) : array
+    protected function doNext($input = null, $context = null) : array
     {
-        $action = $this->getCurrentAction();
-
-        if (null === $action) {
+        if (null === ($pipe = $this->selectNextPipe())) {
             return [];
         }
 
-        if ($this->throwable) {
-            return [];
-        }
-
-        try {
-            $resultArray = $this->processor->callAction(
-                $this->action,
-                $this,
-                $result, $input, $context
-            );
-        }
-        catch ( \Throwable $e ) {
-            $this->throwable = $e;
-
-            end($this->middlewareList);
-            end($this->actionList);
-
-            $resultArray = $this->doFallbacks($input, $context);
-        }
-
-        return $resultArray;
-    }
-
-
-    /**
-     * @return array{ 0?: mixed }
-     */
-    protected function doFallbacks($result = null, $input = null, $context = null) : array
-    {
-        do {
-            $outputArray = $this->doCurrentFallback($result, $input, $context);
-
-            if ($this->fallbackIdLast > key($this->fallbackList)) {
-                if (count($outputArray)) {
-                    [ $result ] = $outputArray;
-                }
-            }
-
-            next($this->fallbackList);
-        } while ( null !== key($this->fallbackList) );
+        $outputArray = $this->doPipe($pipe, $input, $context);
 
         return $outputArray;
     }
 
-    /**
-     * @return array{ 0?: mixed }
-     */
-    protected function doNextFallback($result = null, $input = null, $context = null) : array
+
+    protected function selectNextPipe() : ?Pipe
     {
-        next($this->fallbackList);
+        $pipe = null
+            ?? $this->selectNextPipeChildInstance()
+            ?? $this->selectNextPipeCurrentInstance();
 
-        $resultArray = $this->doCurrentFallback($result, $input, $context);
-
-        return $resultArray;
+        return $pipe;
     }
 
-    /**
-     * @return array{ 0?: mixed }
-     */
-    protected function doCurrentFallback($result = null, $input = null, $context = null) : array
+    protected function selectNextPipeChildInstance() : ?Pipe
     {
-        $fallback = $this->getCurrentFallback();
-
-        if (null === $fallback) {
-            return [];
+        if (! $this->runtimePipeCurrentPipeline) {
+            return null;
         }
 
-        if (! $this->throwable) {
-            return [];
+        $pipe = $this->runtimePipeCurrentPipeline
+            ->getPipeline()
+            ->selectNextPipe()
+        ;
+
+        if (null === $pipe) {
+            $this->runtimePipeCurrentPipeline = null;
+
+            return null;
         }
 
-        $resultArray = $this->processor->callFallback(
-            $fallback,
-            $this,
-            $this->throwable, $result, $input, $context
+        return $pipe;
+    }
+
+    protected function selectNextPipeCurrentInstance() : ?Pipe
+    {
+        if ($this->runtimePipeId === $this->lastPipeId) {
+            return null;
+        }
+
+        $this->runtimePipeId++;
+
+        $pipeRuntime = $this->getPipe($this->runtimePipeId);
+
+        $pipe = null
+            ?? $this->selectNextPipeParentPipelineByTypePipeline($pipeRuntime)
+            ?? $this->selectNextPipeParentPipelineByTypeMiddleware($pipeRuntime)
+            ?? $this->selectNextPipeParentPipelineByTypeAction($pipeRuntime)
+            ?? $this->selectNextPipeParentPipelineByTypeFallback($pipeRuntime);
+
+        return $pipe;
+    }
+
+    protected function selectNextPipeParentPipelineByTypePipeline(Pipe $pipe) : ?Pipe
+    {
+        if ($pipe->getType() !== Pipe::TYPE_PIPELINE) {
+            return null;
+        }
+
+        $this->runtimePipeCurrentPipeline = $pipe;
+
+        $pipeChild = $pipe
+            ->getPipeline()
+            ->selectNextPipe()
+        ;
+
+        if (null === $pipeChild) {
+            $this->runtimePipeCurrentPipeline = null;
+
+            return null;
+        }
+
+        return $pipeChild;
+    }
+
+    protected function selectNextPipeParentPipelineByTypeMiddleware(Pipe $pipe) : ?Pipe
+    {
+        if ($pipe->getType() !== Pipe::TYPE_MIDDLEWARE) {
+            return null;
+        }
+
+        return $pipe;
+    }
+
+    protected function selectNextPipeParentPipelineByTypeAction(Pipe $pipe) : ?Pipe
+    {
+        if ($pipe->getType() !== Pipe::TYPE_ACTION) {
+            return null;
+        }
+
+        $isPipeAvailable = (false
+            || ! $this->hasMiddlewares
+            || $this->runtimePipeCurrentMiddleware
         );
 
-        if (count($resultArray)) {
-            $this->throwable = null;
+        if (! $isPipeAvailable) {
+            return null;
+        }
 
-        } else {
-            $resultArray = $this->doNextFallback($input, $context);
+        return $pipe;
+    }
+
+    protected function selectNextPipeParentPipelineByTypeFallback(Pipe $pipe) : ?Pipe
+    {
+        if ($pipe->getType() !== Pipe::TYPE_FALLBACK) {
+            return null;
+        }
+
+        $isPipeAvailable = (false
+            || ! $this->hasMiddlewares
+            || $this->runtimePipeCurrentMiddleware
+        );
+
+        if (! $isPipeAvailable) {
+            return null;
+        }
+
+        return $pipe;
+    }
+
+
+    protected function doPipe(Pipe $pipe, $input = null, $context = null) : array
+    {
+        $resultArray = null
+            ?? $this->doPipeByTypeMiddleware($pipe, $input, $context)
+            ?? $this->doPipeByTypeAction($pipe, $input, $context)
+            ?? $this->doPipeByTypeFallback($pipe, $input, $context);
+
+        if (null === $resultArray) {
+            throw new RuntimeException(
+                'Unknown `pipeType`: ' . $pipe->getType()
+            );
         }
 
         return $resultArray;
+    }
+
+    protected function doPipeByTypeMiddleware(Pipe $pipe, $input = null, $context = null) : ?array
+    {
+        if ($pipe->getType() !== Pipe::TYPE_MIDDLEWARE) {
+            return null;
+        }
+
+        if (count($this->runtimeThrowables)) {
+            return [];
+        }
+
+        $this->runtimePipeCurrentMiddleware = $pipe;
+
+        $method = [ $this->processor, 'callMiddleware' ];
+        $methodArgs = [
+            0 => $pipe->getHandler(),
+            1 => $this,
+            2 => $input,
+            3 => $context,
+            4 => $this->runtimeInputOriginal,
+        ];
+
+        $resultArray = [];
+
+        try {
+            $resultArray = call_user_func_array(
+                $method,
+                $methodArgs
+            );
+        }
+        catch ( \Throwable $e ) {
+            $this->runtimeThrowables[] = $e;
+        }
+
+        $this->runtimePipeCurrentMiddleware = null;
+
+        return $resultArray;
+    }
+
+    protected function doPipeByTypeAction(Pipe $pipe, $input = null, $context = null) : ?array
+    {
+        if ($pipe->getType() !== Pipe::TYPE_ACTION) {
+            return null;
+        }
+
+        if (count($this->runtimeThrowables)) {
+            return [];
+        }
+
+        $this->runtimePipeCurrentAction = $pipe;
+
+        $method = [ $this->processor, 'callAction' ];
+        $methodArgs = [
+            0 => $pipe->getHandler(),
+            1 => $this,
+            2 => $input,
+            3 => $context,
+            4 => $this->runtimeInputOriginal,
+        ];
+
+        $resultArray = [];
+
+        try {
+            $resultArray = call_user_func_array(
+                $method,
+                $methodArgs
+            );
+        }
+        catch ( \Throwable $e ) {
+            $this->runtimeThrowables[] = $e;
+        }
+
+        $this->runtimePipeCurrentAction = null;
+
+        return $resultArray;
+    }
+
+    protected function doPipeByTypeFallback(Pipe $pipe, $input = null, $context = null) : ?array
+    {
+        if ($pipe->getType() !== Pipe::TYPE_FALLBACK) {
+            return null;
+        }
+
+        if (! count($this->runtimeThrowables)) {
+            return [];
+        }
+
+        $this->runtimePipeCurrentFallback = $pipe;
+
+        $latestThrowable = end($this->runtimeThrowables);
+
+        $method = [ $this->processor, 'callFallback' ];
+        $methodArgs = [
+            0 => $pipe->getHandler(),
+            1 => $this,
+            2 => $latestThrowable,
+            3 => $input,
+            4 => $context,
+            5 => $this->runtimeInputOriginal,
+        ];
+
+        $resultArray = [];
+
+        try {
+            $resultArray = call_user_func_array(
+                $method,
+                $methodArgs
+            );
+
+            if (count($resultArray)) {
+                array_pop($this->runtimeThrowables);
+            }
+        }
+        catch ( \Throwable $e ) {
+            $this->runtimeThrowables[] = $e;
+        }
+
+        $this->runtimePipeCurrentFallback = null;
+
+        return $resultArray;
+    }
+
+
+    protected function getPipe(int $id) : ?Pipe
+    {
+        if (! isset($this->pipeList[ $id ])) {
+            return null;
+        }
+
+        $pipe = $this->pipeList[ $id ];
+
+        return $pipe;
     }
 }

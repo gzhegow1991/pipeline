@@ -7,7 +7,7 @@ use Gzhegow\Pipeline\Exception\RuntimeException;
 
 class DemoRuntimeExceptionAction
 {
-    public function __invoke($result = null, $input = null, $context = null) // : mixed
+    public function __invoke($input = null, $context = null, $inputOriginal = null) // : mixed
     {
         var_dump(__METHOD__);
 

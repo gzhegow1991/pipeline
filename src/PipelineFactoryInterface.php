@@ -2,9 +2,9 @@
 
 namespace Gzhegow\Pipeline;
 
+/**
+ * @mixin PipelineFactory
+ */
 interface PipelineFactoryInterface
 {
-    public function newPipeline() : PipelineInterface;
-
-    public function newPipelineProcessor() : PipelineProcessorInterface;
 }

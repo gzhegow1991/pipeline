@@ -9,14 +9,16 @@ class PipelineFactory implements PipelineFactoryInterface
     {
         $processor = $this->newPipelineProcessor();
 
-        return new Pipeline(
-            $processor
-        );
+        $pipeline = new Pipeline($processor);
+
+        return $pipeline;
     }
 
 
     public function newPipelineProcessor() : PipelineProcessorInterface
     {
-        return new PipelineProcessor($this);
+        $pipelineProcessor = new PipelineProcessor($this);
+
+        return $pipelineProcessor;
     }
 }

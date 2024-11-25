@@ -79,7 +79,7 @@ abstract class GenericHandler implements \Serializable
         Lib::php_errors_start($b);
 
         $instance = null
-            ?? static::fromStatic($from)
+            ?? static::fromInstance($from)
             ?? static::fromClosure($from)
             ?? static::fromMethod($from)
             ?? static::fromInvokable($from)
@@ -92,6 +92,7 @@ abstract class GenericHandler implements \Serializable
             foreach ( $errors as $error ) {
                 $last = new LogicException($error, null, $last);
             }
+
             throw $last;
         }
 
@@ -102,13 +103,13 @@ abstract class GenericHandler implements \Serializable
     /**
      * @return static|null
      */
-    protected static function fromStatic($static) : ?object
+    protected static function fromInstance($instance) : ?object
     {
-        if (! is_a($static, static::class)) {
-            return Lib::php_error([ 'The `from` should be instance of: ' . static::class, $static ]);
+        if (! is_a($instance, static::class)) {
+            return Lib::php_error([ 'The `from` should be instance of: ' . static::class, $instance ]);
         }
 
-        return $static;
+        return $instance;
     }
 
     /**
@@ -207,21 +208,8 @@ abstract class GenericHandler implements \Serializable
     }
 
 
-    public function getKey() : string
+    private function __construct()
     {
-        if (! isset($this->key)) {
-            $key = null
-                ?? $this->closure
-                ?? $this->method
-                ?? $this->invokable
-                ?? $this->function;
-
-            $key = Lib::php_dump($key);
-
-            $this->key = $key;
-        }
-
-        return $this->key;
     }
 
 
@@ -251,5 +239,23 @@ abstract class GenericHandler implements \Serializable
         $array = unserialize($data);
 
         $this->__unserialize($array);
+    }
+
+
+    public function getKey() : string
+    {
+        if (! isset($this->key)) {
+            $key = null
+                ?? $this->closure
+                ?? $this->method
+                ?? $this->invokable
+                ?? $this->function;
+
+            $key = Lib::php_dump($key);
+
+            $this->key = $key;
+        }
+
+        return $this->key;
     }
 }
