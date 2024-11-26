@@ -14,7 +14,6 @@ class PipelineFactory implements PipelineFactoryInterface
         return $pipeline;
     }
 
-
     public function newPipelineProcessor() : PipelineProcessorInterface
     {
         $pipelineProcessor = new PipelineProcessor($this);

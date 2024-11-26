@@ -10,7 +10,9 @@ class Lib
 
         $strings = array_map(
             static function ($v) {
-                return \Gzhegow\Pipeline\Lib::php_var_export($v, true);
+                return is_object($v)
+                    ? \Gzhegow\Pipeline\Lib::php_var_dump($v)
+                    : \Gzhegow\Pipeline\Lib::php_var_export($v, true);
             },
             $values
         );
