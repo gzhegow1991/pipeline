@@ -288,7 +288,7 @@ $fn = function () use ($factory) {
     ;
 
     // > запускаем конвеер
-    $myInput = 'any data 5';
+    $myInput = 'any data 6';
     $myContext = (object) [];
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
@@ -317,7 +317,7 @@ $fn = function () use ($factory) {
     ;
 
     // > запускаем конвеер
-    $myInput = 'any data 6';
+    $myInput = 'any data 7';
     $myContext = (object) [];
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
@@ -345,7 +345,7 @@ $fn = function () use ($factory) {
     ;
 
     // > запускаем конвеер
-    $myInput = 'any data 7';
+    $myInput = 'any data 8';
     $myContext = (object) [];
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
@@ -373,7 +373,7 @@ $fn = function () use ($factory) {
     ;
 
     // > запускаем конвеер
-    $myInput = 'any data 8';
+    $myInput = 'any data 9';
     $myContext = (object) [];
     $result = null;
     try {
