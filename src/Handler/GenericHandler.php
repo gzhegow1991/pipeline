@@ -62,10 +62,10 @@ abstract class GenericHandler implements \Serializable
      */
     public static function from($from) : object
     {
-        if (null === ($instance = static::tryFrom($from))) {
-            throw new LogicException([
-                'Unknown `from`: ' . Lib::php_var_dump($from),
-            ]);
+        $instance = static::tryFrom($from, $error);
+
+        if (null === $instance) {
+            throw $error;
         }
 
         return $instance;
@@ -74,8 +74,10 @@ abstract class GenericHandler implements \Serializable
     /**
      * @return static|null
      */
-    public static function tryFrom($from) : ?object
+    public static function tryFrom($from, \Throwable &$last = null) : ?object
     {
+        $last = null;
+
         Lib::php_errors_start($b);
 
         $instance = null
@@ -88,12 +90,9 @@ abstract class GenericHandler implements \Serializable
         $errors = Lib::php_errors_end($b);
 
         if (null === $instance) {
-            $last = null;
             foreach ( $errors as $error ) {
                 $last = new LogicException($error, null, $last);
             }
-
-            throw $last;
         }
 
         return $instance;
