@@ -17,15 +17,14 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline) {
 set_exception_handler(function ($e) {
     $current = $e;
     do {
-        $file = $current->getFile() ?? '{file}';
-        $line = $current->getLine() ?? '{line}';
-
-        echo PHP_EOL;
-        echo PHP_EOL;
         echo \Gzhegow\Pipeline\Lib::php_var_dump($current) . PHP_EOL;
         echo $current->getMessage() . PHP_EOL;
-        echo "{$file} : { $line }" . PHP_EOL;
 
+        foreach ( $e->getTrace() as $traceItem ) {
+            echo "{$traceItem['file']} : {$traceItem['line']}" . PHP_EOL;
+        }
+
+        echo PHP_EOL;
     } while ( $current = $current->getPrevious() );
 
     die();
