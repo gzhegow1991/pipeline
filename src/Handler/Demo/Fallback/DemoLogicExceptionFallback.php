@@ -9,7 +9,7 @@ class DemoLogicExceptionFallback
     {
         if (! is_a($e, \LogicException::class)) return null;
 
-        var_dump(__METHOD__);
+        echo __METHOD__ . PHP_EOL;
 
         return __METHOD__ . ' result.';
     }

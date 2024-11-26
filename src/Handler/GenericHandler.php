@@ -64,7 +64,7 @@ abstract class GenericHandler implements \Serializable
     {
         if (null === ($instance = static::tryFrom($from))) {
             throw new LogicException([
-                'Unknown `from`: ' . Lib::php_dump($from),
+                'Unknown `from`: ' . Lib::php_var_dump($from),
             ]);
         }
 
@@ -251,7 +251,7 @@ abstract class GenericHandler implements \Serializable
                 ?? $this->invokable
                 ?? $this->function;
 
-            $key = Lib::php_dump($key);
+            $key = Lib::php_var_dump($key);
 
             $this->key = $key;
         }

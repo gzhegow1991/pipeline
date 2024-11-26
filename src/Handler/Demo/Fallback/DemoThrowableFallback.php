@@ -3,11 +3,13 @@
 namespace Gzhegow\Pipeline\Handler\Demo\Fallback;
 
 
-class DemoFallback
+class DemoThrowableFallback
 {
     public function __invoke(\Throwable $e, $result = null, $input = null, $context = null)
     {
-        var_dump(__METHOD__);
+        // if (! is_a($e, \Throwable::class)) return null;
+
+        echo __METHOD__ . PHP_EOL;
 
         return __METHOD__ . ' result.';
     }

@@ -46,7 +46,7 @@ class Pipeline implements PipelineInterface
     /**
      * @var Pipe
      */
-    protected $runtimePipeCurrentPipeline;
+    protected $runtimePipeCurrentChildPipeline;
     /**
      * @var Pipe
      */
@@ -201,7 +201,7 @@ class Pipeline implements PipelineInterface
 
 
     /**
-     * @throws \Throwable
+     * @throws PipelineException
      */
     public function run($input = null, $context = null) // : mixed
     {
@@ -228,8 +228,21 @@ class Pipeline implements PipelineInterface
     }
 
 
+    protected function doReset() : void
+    {
+        $this->runtimePipeId = -1;
+        $this->runtimePipeCurrentChildPipeline = null;
+        $this->runtimePipeCurrentMiddleware = null;
+        $this->runtimePipeCurrentAction = null;
+        $this->runtimePipeCurrentFallback = null;
+
+        $this->runtimeInputOriginal = null;
+
+        $this->runtimeThrowables = [];
+    }
+
     /**
-     * @throws \Throwable
+     * @throws PipelineException
      */
     protected function doRun($input = null, $context = null) : array
     {
@@ -262,19 +275,6 @@ class Pipeline implements PipelineInterface
         return $outputArray;
     }
 
-    protected function doReset() : void
-    {
-        $this->runtimePipeId = -1;
-        $this->runtimePipeCurrentPipeline = null;
-        $this->runtimePipeCurrentMiddleware = null;
-        $this->runtimePipeCurrentAction = null;
-        $this->runtimePipeCurrentFallback = null;
-
-        $this->runtimeInputOriginal = null;
-
-        $this->runtimeThrowables = [];
-    }
-
     protected function doNext($input = null, $context = null) : array
     {
         if (null === ($pipe = $this->selectNextPipe())) {
@@ -290,25 +290,25 @@ class Pipeline implements PipelineInterface
     protected function selectNextPipe() : ?Pipe
     {
         $pipe = null
-            ?? $this->selectNextPipeChildInstance()
-            ?? $this->selectNextPipeCurrentInstance();
+            ?? $this->selectNextPipeChildPipeline()
+            ?? $this->selectNextPipeCurrentPipeline();
 
         return $pipe;
     }
 
-    protected function selectNextPipeChildInstance() : ?Pipe
+    protected function selectNextPipeChildPipeline() : ?Pipe
     {
-        if (! $this->runtimePipeCurrentPipeline) {
+        if (! $this->runtimePipeCurrentChildPipeline) {
             return null;
         }
 
-        $pipe = $this->runtimePipeCurrentPipeline
+        $pipe = $this->runtimePipeCurrentChildPipeline
             ->getPipeline()
             ->selectNextPipe()
         ;
 
         if (null === $pipe) {
-            $this->runtimePipeCurrentPipeline = null;
+            $this->runtimePipeCurrentChildPipeline = null;
 
             return null;
         }
@@ -316,7 +316,7 @@ class Pipeline implements PipelineInterface
         return $pipe;
     }
 
-    protected function selectNextPipeCurrentInstance() : ?Pipe
+    protected function selectNextPipeCurrentPipeline() : ?Pipe
     {
         if ($this->runtimePipeId === $this->lastPipeId) {
             return null;
@@ -327,21 +327,21 @@ class Pipeline implements PipelineInterface
         $pipeRuntime = $this->getPipe($this->runtimePipeId);
 
         $pipe = null
-            ?? $this->selectNextPipeParentPipelineByTypePipeline($pipeRuntime)
-            ?? $this->selectNextPipeParentPipelineByTypeMiddleware($pipeRuntime)
-            ?? $this->selectNextPipeParentPipelineByTypeAction($pipeRuntime)
-            ?? $this->selectNextPipeParentPipelineByTypeFallback($pipeRuntime);
+            ?? $this->selectNextPipeCurrentPipelineOfTypePipeline($pipeRuntime)
+            ?? $this->selectNextPipeCurrentPipelineOfTypeMiddleware($pipeRuntime)
+            ?? $this->selectNextPipeCurrentPipelineOfTypeAction($pipeRuntime)
+            ?? $this->selectNextPipeCurrentPipelineOfTypeFallback($pipeRuntime);
 
         return $pipe;
     }
 
-    protected function selectNextPipeParentPipelineByTypePipeline(Pipe $pipe) : ?Pipe
+    protected function selectNextPipeCurrentPipelineOfTypePipeline(Pipe $pipe) : ?Pipe
     {
         if ($pipe->getType() !== Pipe::TYPE_PIPELINE) {
             return null;
         }
 
-        $this->runtimePipeCurrentPipeline = $pipe;
+        $this->runtimePipeCurrentChildPipeline = $pipe;
 
         $pipeChild = $pipe
             ->getPipeline()
@@ -349,7 +349,7 @@ class Pipeline implements PipelineInterface
         ;
 
         if (null === $pipeChild) {
-            $this->runtimePipeCurrentPipeline = null;
+            $this->runtimePipeCurrentChildPipeline = null;
 
             return null;
         }
@@ -357,7 +357,7 @@ class Pipeline implements PipelineInterface
         return $pipeChild;
     }
 
-    protected function selectNextPipeParentPipelineByTypeMiddleware(Pipe $pipe) : ?Pipe
+    protected function selectNextPipeCurrentPipelineOfTypeMiddleware(Pipe $pipe) : ?Pipe
     {
         if ($pipe->getType() !== Pipe::TYPE_MIDDLEWARE) {
             return null;
@@ -366,7 +366,7 @@ class Pipeline implements PipelineInterface
         return $pipe;
     }
 
-    protected function selectNextPipeParentPipelineByTypeAction(Pipe $pipe) : ?Pipe
+    protected function selectNextPipeCurrentPipelineOfTypeAction(Pipe $pipe) : ?Pipe
     {
         if ($pipe->getType() !== Pipe::TYPE_ACTION) {
             return null;
@@ -384,7 +384,7 @@ class Pipeline implements PipelineInterface
         return $pipe;
     }
 
-    protected function selectNextPipeParentPipelineByTypeFallback(Pipe $pipe) : ?Pipe
+    protected function selectNextPipeCurrentPipelineOfTypeFallback(Pipe $pipe) : ?Pipe
     {
         if ($pipe->getType() !== Pipe::TYPE_FALLBACK) {
             return null;
@@ -406,9 +406,9 @@ class Pipeline implements PipelineInterface
     protected function doPipe(Pipe $pipe, $input = null, $context = null) : array
     {
         $resultArray = null
-            ?? $this->doPipeByTypeMiddleware($pipe, $input, $context)
-            ?? $this->doPipeByTypeAction($pipe, $input, $context)
-            ?? $this->doPipeByTypeFallback($pipe, $input, $context);
+            ?? $this->doPipeOfTypeMiddleware($pipe, $input, $context)
+            ?? $this->doPipeOfTypeAction($pipe, $input, $context)
+            ?? $this->doPipeOfTypeFallback($pipe, $input, $context);
 
         if (null === $resultArray) {
             throw new RuntimeException(
@@ -419,7 +419,7 @@ class Pipeline implements PipelineInterface
         return $resultArray;
     }
 
-    protected function doPipeByTypeMiddleware(Pipe $pipe, $input = null, $context = null) : ?array
+    protected function doPipeOfTypeMiddleware(Pipe $pipe, $input = null, $context = null) : ?array
     {
         if ($pipe->getType() !== Pipe::TYPE_MIDDLEWARE) {
             return null;
@@ -457,7 +457,7 @@ class Pipeline implements PipelineInterface
         return $resultArray;
     }
 
-    protected function doPipeByTypeAction(Pipe $pipe, $input = null, $context = null) : ?array
+    protected function doPipeOfTypeAction(Pipe $pipe, $input = null, $context = null) : ?array
     {
         if ($pipe->getType() !== Pipe::TYPE_ACTION) {
             return null;
@@ -495,7 +495,7 @@ class Pipeline implements PipelineInterface
         return $resultArray;
     }
 
-    protected function doPipeByTypeFallback(Pipe $pipe, $input = null, $context = null) : ?array
+    protected function doPipeOfTypeFallback(Pipe $pipe, $input = null, $context = null) : ?array
     {
         if ($pipe->getType() !== Pipe::TYPE_FALLBACK) {
             return null;

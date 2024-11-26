@@ -7,7 +7,7 @@ class DemoPassInputToResultAction
 {
     public function __invoke($input = null, $context = null, $inputOriginal = null) // : mixed
     {
-        var_dump(__METHOD__);
+        echo __METHOD__ . PHP_EOL;
 
         return $input;
     }
