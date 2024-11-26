@@ -17,6 +17,8 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline) {
 set_exception_handler(function ($e) {
     $current = $e;
     do {
+        echo PHP_EOL;
+
         echo \Gzhegow\Pipeline\Lib::php_var_dump($current) . PHP_EOL;
         echo $current->getMessage() . PHP_EOL;
 
