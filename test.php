@@ -35,7 +35,7 @@ set_exception_handler(function ($e) {
 // > добавляем несколько функция для тестирования
 function _dump($value, ...$values)
 {
-    return \Gzhegow\Pipeline\Lib::php_dump($value, ...$values);
+    echo \Gzhegow\Pipeline\Lib::php_dump($value, ...$values) . PHP_EOL;
 }
 
 function _error($message, $code = -1, $previous = null, string $file = null, int $line = null)
@@ -123,7 +123,7 @@ $fn = function () use ($factory) {
 _assert_call($fn, [], <<<HEREDOC
 Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
-"[ RESULT ]" "Gzhegow\\Pipeline\\Handler\\Demo\\Action\\Demo2ndAction::__invoke result."
+"[ RESULT ]" | "Gzhegow\\Pipeline\\Handler\\Demo\\Action\\Demo2ndAction::__invoke result."
 ""
 HEREDOC
 );
@@ -150,7 +150,7 @@ $fn = function () use ($factory) {
 _assert_call($fn, [], <<<HEREDOC
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-"[ RESULT ]" "any data 2"
+"[ RESULT ]" | "any data 2"
 ""
 HEREDOC
 );
@@ -190,7 +190,7 @@ Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-"[ RESULT ]" "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
 ""
 HEREDOC
 );
@@ -221,7 +221,7 @@ _assert_call($fn, [], <<<HEREDOC
 Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
 @after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
 @after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-"[ RESULT ]" "Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke result."
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke result."
 ""
 HEREDOC
 );
@@ -249,7 +249,7 @@ $fn = function () use ($factory) {
 _assert_call($fn, [], <<<HEREDOC
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
 @after :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
-"[ RESULT ]" "Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke result."
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke result."
 ""
 HEREDOC
 );
@@ -280,7 +280,7 @@ _assert_call($fn, [], <<<HEREDOC
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
 @after :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
 @after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-"[ RESULT ]" "Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke result."
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke result."
 ""
 HEREDOC
 );
@@ -307,7 +307,7 @@ $fn = function () use ($factory) {
 _assert_call($fn, [], <<<HEREDOC
 Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
-"[ RESULT ]" "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result."
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result."
 ""
 HEREDOC
 );
@@ -336,7 +336,7 @@ _assert_call($fn, [], <<<HEREDOC
 Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoSkipFallback::__invoke
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::__invoke
-"[ RESULT ]" "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::__invoke result."
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::__invoke result."
 ""
 HEREDOC
 );
@@ -372,9 +372,9 @@ $fn = function () use ($factory) {
 };
 _assert_call($fn, [], <<<HEREDOC
 Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
-"[ CATCH ]" "Gzhegow\Pipeline\Exception\Exception\PipelineException" "Unhandled exception occured during processing pipeline"
-"[ CATCH ]" "Gzhegow\Pipeline\Exception\Exception" "Hello, World!"
-"[ RESULT ]" NULL
+"[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception\PipelineException" | "Unhandled exception occured during processing pipeline"
+"[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception" | "Hello, World!"
+"[ RESULT ]" | NULL
 ""
 HEREDOC
 );

@@ -4,22 +4,41 @@ namespace Gzhegow\Pipeline;
 
 class Lib
 {
-    public static function php_dump($value, ...$values)
+    public static function php_dump($value, ...$values) : string
     {
         array_unshift($values, $value);
 
-        $strings = array_map(
+        $lines = array_map(
             static function ($v) {
-                return is_object($v)
-                    ? \Gzhegow\Pipeline\Lib::php_var_dump($v)
-                    : \Gzhegow\Pipeline\Lib::php_var_export($v, true);
+                $content = \Gzhegow\Pipeline\Lib::php_var_export($v, [ "with_objects" => false ]);
+
+                $content = trim($content);
+                $content = preg_replace('/\s+/', ' ', $content);
+
+                return $content;
             },
             $values
         );
 
-        echo implode(" ", $strings) . PHP_EOL;
+        $output = implode(' | ', $lines);
 
-        return $value;
+        return $output;
+    }
+
+    public static function php_print($value, ...$values) : string
+    {
+        array_unshift($values, $value);
+
+        $dumps = array_map(
+            static function ($v) {
+                return \Gzhegow\Pipeline\Lib::php_var_export($v, [ "with_objects" => false ]);
+            },
+            $values
+        );
+
+        $output = implode(PHP_EOL . PHP_EOL, $dumps);
+
+        return $output;
     }
 
 
@@ -121,21 +140,31 @@ class Lib
     }
 
 
-    public static function php_var_dump($value, int $maxlen = null, int $dumpMaxlen = null) : string
+    public static function php_var_dump($value, array $options = []) : string
     {
-        if ($dumpMaxlen < 1) $dumpMaxlen = null;
-        if ($maxlen < 1) $maxlen = null;
+        $maxlen = $options[ 'maxlen' ] ?? null;
+        $isWalkArray = $options[ 'is_walk_array' ] ?? true;
 
-        $dumpMaxlen = $dumpMaxlen ?? $maxlen;
+        if ($maxlen < 1) $maxlen = null;
 
         $var = null;
         $dump = null;
+
         if (is_iterable($value)) {
             if (is_object($value)) {
                 $var = 'iterable(' . get_class($value) . ' # ' . spl_object_id($value) . ')';
 
             } else {
                 $var = 'array(' . count($value) . ')';
+
+                if ($isWalkArray) {
+                    $dump = array_map(function ($v) use ($options) {
+                        // ! recursion
+                        return static::php_var_dump($v, [ 'is_walk_array' => false ] + $options);
+                    }, $value);
+
+                    $dump = var_export($dump, true);
+                }
             }
 
         } else {
@@ -144,21 +173,13 @@ class Lib
 
                 if (method_exists($value, '__debugInfo')) {
                     $dump = static::php_var_export(
-                        $value, true,
-                        [ "indent" => " ", "newline" => " " ]
+                        $value, [ "newline" => " " ]
                     );
-
-                    $dump = (null !== $dumpMaxlen)
-                        ? (substr($dump, 0, $dumpMaxlen) . '...')
-                        : $dump;
                 }
 
             } elseif (is_string($value)) {
                 $var = 'string(' . strlen($value) . ')';
 
-                $dump = (null !== $dumpMaxlen)
-                    ? (substr($value, 0, $dumpMaxlen) . '...')
-                    : $value;
                 $dump = "\"{$dump}\"";
 
             } elseif (is_resource($value)) {
@@ -177,26 +198,34 @@ class Lib
             }
         }
 
-        $_value = (null !== $dump)
-            ? "{$var} : {$dump}"
-            : "{$var}";
+        $_value = $var;
+        if (null !== $dump) {
+            if (null !== $maxlen) {
+                $dump = explode("\n", $dump);
 
-        $_value = trim($_value);
-        $_value = preg_replace('/\s+/', ' ', $_value);
+                $dump = array_map(function ($v) use ($maxlen) {
+                    $v = trim($v);
+                    $v = substr($v, 0, $maxlen) . '...';
 
-        $_value = (null !== $maxlen)
-            ? (substr($_value, 0, $maxlen) . '...')
-            : $_value;
+                    return $v;
+                }, $dump);
+
+                $dump = implode("\n", $dump);
+            }
+
+            $_value = "{$var} : {$dump}";
+        }
 
         $_value = "{ {$_value} }";
 
         return $_value;
     }
 
-    public static function php_var_export($var, bool $return = false, array $options = [])
+    public static function php_var_export($var, array $options = []) : string
     {
         $indent = $options[ 'indent' ] ?? "  ";
         $newline = $options[ 'newline' ] ?? "\n";
+        $withObjects = $options[ 'with_objects' ] ?? true;
 
         switch ( gettype($var) ) {
             case "NULL":
@@ -213,6 +242,7 @@ class Lib
 
             case "array":
                 $isList = true;
+
                 $keys = array_keys($var);
                 foreach ( $keys as $key ) {
                     if (is_string($key)) {
@@ -222,8 +252,7 @@ class Lib
                     }
                 }
 
-                $isListIndexed = true
-                    && $isList
+                $isListIndexed = $isList
                     && ($keys === range(0, count($var) - 1));
 
                 $r = [];
@@ -231,12 +260,12 @@ class Lib
                     $line = $indent;
 
                     if (! $isListIndexed) {
-                        $line .= var_export($key, true);
+                        $line .= is_string($key) ? "\"{$key}\"" : $key;
                         $line .= " => ";
                     }
 
                     // ! recursion
-                    $line .= static::php_var_export($value, true, $options);
+                    $line .= static::php_var_export($value, $options);
 
                     $r[] = $line;
                 }
@@ -248,18 +277,20 @@ class Lib
 
                 break;
 
+            case "object":
+                $result = $withObjects
+                    ? var_export($var, true)
+                    : static::php_var_dump($var);
+
+                break;
+
             default:
                 $result = var_export($var, true);
+
                 break;
         }
 
-        if ($return) {
-            return $result;
-        }
-
-        echo $result;
-
-        return null;
+        return $result;
     }
 
 
