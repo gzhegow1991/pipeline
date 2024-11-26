@@ -93,7 +93,7 @@ class Pipeline implements PipelineInterface
         return $this;
     }
 
-    public function addPipeline(self $pipeline) : int
+    public function addPipeline(PipelineInterface $pipeline) : int
     {
         $id = ++$this->lastPipeId;
 

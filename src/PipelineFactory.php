@@ -5,9 +5,9 @@ namespace Gzhegow\Pipeline;
 
 class PipelineFactory implements PipelineFactoryInterface
 {
-    public function newPipeline() : PipelineInterface
+    public function newPipeline(PipelineProcessorInterface $processor = null) : PipelineInterface
     {
-        $processor = $this->newPipelineProcessor();
+        $processor = $processor ?? $this->newPipelineProcessor();
 
         $pipeline = new Pipeline($processor);
 
@@ -20,5 +20,22 @@ class PipelineFactory implements PipelineFactoryInterface
         $pipelineProcessor = new PipelineProcessor($this);
 
         return $pipelineProcessor;
+    }
+
+
+    /**
+     * @template-covariant T of object
+     *
+     * @param class-string<T>|T $class
+     *
+     * @return T
+     */
+    public function newHandlerObject(string $class, array $parameters = []) : object
+    {
+        [ $list ] = Lib::array_kwargs($parameters);
+
+        $handler = new $class(...$list);
+
+        return $handler;
     }
 }

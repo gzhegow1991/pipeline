@@ -10,16 +10,6 @@ use Gzhegow\Pipeline\Handler\Middleware\GenericMiddleware;
 interface PipelineProcessorInterface
 {
     /**
-     * @template-covariant T of object
-     *
-     * @param class-string<T>|T $class
-     *
-     * @return T
-     */
-    public function newHandlerObject(string $class, array $parameters = []) : object;
-
-
-    /**
      * @return array{ 0?: mixed }
      */
     public function callMiddleware(

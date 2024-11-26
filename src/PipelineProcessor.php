@@ -24,23 +24,6 @@ class PipelineProcessor implements PipelineProcessorInterface
 
 
     /**
-     * @template-covariant T of object
-     *
-     * @param class-string<T>|T $class
-     *
-     * @return T
-     */
-    public function newHandlerObject(string $class, array $parameters = []) : object
-    {
-        [ $list ] = Lib::array_kwargs($parameters);
-
-        $handler = new $class(...$list);
-
-        return $handler;
-    }
-
-
-    /**
      * @return array{ 0?: mixed }
      */
     public function callMiddleware(
@@ -175,7 +158,7 @@ class PipelineProcessor implements PipelineProcessorInterface
         } elseif ($handler->method) {
             $object = null
                 ?? $handler->methodObject
-                ?? $this->newHandlerObject($handler->methodClass);
+                ?? $this->factory->newHandlerObject($handler->methodClass);
 
             $method = $handler->methodName;
 
@@ -184,7 +167,7 @@ class PipelineProcessor implements PipelineProcessorInterface
         } elseif ($handler->invokable) {
             $object = null
                 ?? $handler->invokableObject
-                ?? $this->newHandlerObject($handler->invokableClass);
+                ?? $this->factory->newHandlerObject($handler->invokableClass);
 
             $fn = $object;
 
@@ -194,8 +177,8 @@ class PipelineProcessor implements PipelineProcessorInterface
 
         if (! is_callable($fn)) {
             throw new RuntimeException(
-                'Unable to extract callable from handler. '
-                . 'Handler: ' . Lib::php_var_dump($handler)
+                'Unable to extract callable from handler.'
+                . ' Handler: ' . Lib::php_var_dump($handler)
             );
         }
 
