@@ -50,6 +50,18 @@ interface PipelineInterface
 
 
     /**
+     * @return \Throwable[]
+     */
+    public function getThrowables() : array;
+
+    /**
+     * @param \Throwable[] $throwables
+     *
+     * @return static
+     */
+    public function setThrowables(array $throwables); // : static
+
+    /**
      * @return static
      */
     public function throwables(array $throwables); // : static

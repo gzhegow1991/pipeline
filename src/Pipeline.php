@@ -173,6 +173,30 @@ class Pipeline implements PipelineInterface
 
 
     /**
+     * @return \Throwable[]
+     */
+    public function getThrowables() : array
+    {
+        return $this->runtimeThrowables;
+    }
+
+    /**
+     * @param \Throwable[] $throwables
+     *
+     * @return static
+     */
+    public function setThrowables(array $throwables) // : static
+    {
+        $this->runtimeThrowables = [];
+
+        $this->throwables($throwables);
+
+        return $this;
+    }
+
+    /**
+     * @param \Throwable[] $throwables
+     *
      * @return static
      */
     public function throwables(array $throwables) // : static
@@ -185,6 +209,8 @@ class Pipeline implements PipelineInterface
     }
 
     /**
+     * @param \Throwable $throwable
+     *
      * @return static
      */
     public function throwable($throwable) // : static
