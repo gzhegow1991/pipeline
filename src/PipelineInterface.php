@@ -10,38 +10,83 @@ use Gzhegow\Pipeline\Exception\Exception\PipelineException;
 
 interface PipelineInterface
 {
-    public function pipelines(array $pipelines);
+    /**
+     * @return static
+     */
+    public function pipelines(array $pipelines); // : static
 
-    public function pipeline($pipeline);
+    /**
+     * @return static
+     */
+    public function pipeline($pipeline); // : static
 
     public function addPipeline(PipelineInterface $pipeline) : int;
 
 
-    public function middlewares(array $middlewares);
+    /**
+     * @return static
+     */
+    public function middlewares(array $middlewares); // : static
 
-    public function middleware($middleware);
+    /**
+     * @return static
+     */
+    public function middleware($middleware); // : static
 
     public function addMiddleware(GenericMiddleware $middleware) : int;
 
 
-    public function actions(array $actions);
+    /**
+     * @return static
+     */
+    public function actions(array $actions); // : static
 
-    public function action($action);
+    /**
+     * @return static
+     */
+    public function action($action); // : static
 
     public function addAction(GenericAction $action) : int;
 
 
-    public function fallbacks(array $fallbacks);
+    /**
+     * @return static
+     */
+    public function throwables(array $throwables); // : static
 
-    public function fallback($fallback);
+    /**
+     * @return static
+     */
+    public function throwable($throwable); // : static
+
+    public function addThrowable(\Throwable $throwable) : int;
+
+
+    /**
+     * @return static
+     */
+    public function fallbacks(array $fallbacks); // : static
+
+    /**
+     * @return static
+     */
+    public function fallback($fallback); // : static
 
     public function addFallback(GenericFallback $fallback) : int;
 
 
+    public function getState() : \stdClass;
+
+
+    /**
+     * @return static
+     */
+    public function reset(); // : static
+
     /**
      * @throws PipelineException
      */
-    public function run($input = null, $context = null);
+    public function run($input = null, $context = null); // : mixed
 
-    public function next($input = null, $context = null);
+    public function next($input = null, $context = null); // : mixed
 }

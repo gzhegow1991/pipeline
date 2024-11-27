@@ -61,19 +61,21 @@ class Pipeline implements PipelineInterface
     protected $runtimePipeCurrentFallback;
 
     /**
-     * @var mixed
-     */
-    protected $runtimeInputOriginal;
-
-    /**
      * @var \Throwable[]
      */
     protected $runtimeThrowables = [];
+
+    /**
+     * @var \stdClass
+     */
+    protected $state;
 
 
     public function __construct(PipelineProcessorInterface $processor)
     {
         $this->processor = $processor;
+
+        $this->state = (object) [];
     }
 
 
@@ -170,10 +172,42 @@ class Pipeline implements PipelineInterface
     }
 
 
+    /**
+     * @return static
+     */
+    public function throwables(array $throwables) // : static
+    {
+        foreach ( $throwables as $throwable ) {
+            $this->throwable($throwable);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return static
+     */
+    public function throwable($throwable) // : static
+    {
+        $this->addThrowable($throwable);
+
+        return $this;
+    }
+
+    public function addThrowable(\Throwable $throwable) : int
+    {
+        $id = count($this->runtimeThrowables);
+
+        $this->runtimeThrowables[ $id ] = $throwable;
+
+        return $id;
+    }
+
+
     public function fallbacks(array $fallbacks) // : static
     {
         foreach ( $fallbacks as $fallback ) {
-            $this->addFallback($fallback);
+            $this->fallback($fallback);
         }
 
         return $this;
@@ -199,6 +233,22 @@ class Pipeline implements PipelineInterface
         return $id;
     }
 
+
+    public function getState() : \stdClass
+    {
+        return $this->state;
+    }
+
+
+    /**
+     * @return static
+     */
+    public function reset() // : static
+    {
+        $this->doReset();
+
+        return $this;
+    }
 
     /**
      * @throws PipelineException
@@ -228,7 +278,10 @@ class Pipeline implements PipelineInterface
     }
 
 
-    protected function doReset() : void
+    /**
+     * @return static
+     */
+    protected function doReset() // : static
     {
         $this->runtimePipeId = -1;
         $this->runtimePipeCurrentChildPipeline = null;
@@ -236,9 +289,11 @@ class Pipeline implements PipelineInterface
         $this->runtimePipeCurrentAction = null;
         $this->runtimePipeCurrentFallback = null;
 
-        $this->runtimeInputOriginal = null;
-
         $this->runtimeThrowables = [];
+
+        $this->state = (object) [];
+
+        return $this;
     }
 
     /**
@@ -246,9 +301,7 @@ class Pipeline implements PipelineInterface
      */
     protected function doRun($input = null, $context = null) : array
     {
-        $this->doReset();
-
-        $this->runtimeInputOriginal = $input;
+        $this->state->inputOriginal = $input;
 
         $output = $input;
         $outputArray = [];
@@ -437,7 +490,7 @@ class Pipeline implements PipelineInterface
             1 => $this,
             2 => $input,
             3 => $context,
-            4 => $this->runtimeInputOriginal,
+            4 => $this->state,
         ];
 
         $resultArray = [];
@@ -475,7 +528,7 @@ class Pipeline implements PipelineInterface
             1 => $this,
             2 => $input,
             3 => $context,
-            4 => $this->runtimeInputOriginal,
+            4 => $this->state,
         ];
 
         $resultArray = [];
@@ -516,7 +569,7 @@ class Pipeline implements PipelineInterface
             2 => $latestThrowable,
             3 => $input,
             4 => $context,
-            5 => $this->runtimeInputOriginal,
+            5 => $this->state,
         ];
 
         $resultArray = [];

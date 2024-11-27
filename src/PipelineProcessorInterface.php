@@ -14,7 +14,7 @@ interface PipelineProcessorInterface
      */
     public function callMiddleware(
         GenericMiddleware $middleware,
-        Pipeline $pipeline, $input = null, $context = null, $inputOriginal = null
+        Pipeline $pipeline, $input = null, $context = null
     ) : array;
 
     /**
@@ -22,7 +22,8 @@ interface PipelineProcessorInterface
      */
     public function callAction(
         GenericAction $action,
-        Pipeline $pipeline, $input = null, $context = null, $inputOriginal = null
+        Pipeline $pipeline,
+        $input = null, $context = null
     ) : array;
 
     /**
@@ -30,6 +31,7 @@ interface PipelineProcessorInterface
      */
     public function callFallback(
         GenericFallback $fallback,
-        Pipeline $pipeline, \Throwable $throwable, $input = null, $context = null, $inputOriginal = null
+        Pipeline $pipeline,
+        \Throwable $throwable, $input = null, $context = null
     ) : array;
 }

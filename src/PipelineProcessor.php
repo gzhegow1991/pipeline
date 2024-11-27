@@ -28,23 +28,25 @@ class PipelineProcessor implements PipelineProcessorInterface
      */
     public function callMiddleware(
         GenericMiddleware $middleware,
-        Pipeline $pipeline, $input = null, $context = null, $inputOriginal = null
+        Pipeline $pipeline, $input = null, $context = null
     ) : array
     {
         $callable = $this->extractHandlerCallable($middleware);
+
+        $pipelineState = $pipeline->getState();
 
         $callableArgs = [
             0 => $pipeline,
             1 => $input,
             2 => $context,
-            3 => $inputOriginal,
+            3 => $pipelineState,
         ];
         $callableArgs += [
-            'middleware'    => $middleware,
-            'pipeline'      => $pipeline,
-            'input'         => $input,
-            'context'       => $context,
-            'inputOriginal' => $inputOriginal,
+            'middleware' => $middleware,
+            'pipeline'   => $pipeline,
+            'input'      => $input,
+            'context'    => $context,
+            'state'      => $pipelineState,
         ];
 
         $result = $this->callUserFuncArray(
@@ -63,22 +65,24 @@ class PipelineProcessor implements PipelineProcessorInterface
     public function callAction(
         GenericAction $action,
         Pipeline $pipeline,
-        $input = null, $context = null, $inputOriginal = null
+        $input = null, $context = null
     ) : array
     {
         $callable = $this->extractHandlerCallable($action);
 
+        $pipelineState = $pipeline->getState();
+
         $callableArgs = [
             0 => $input,
             1 => $context,
-            2 => $inputOriginal,
+            2 => $pipelineState,
         ];
         $callableArgs += [
-            'action'        => $action,
-            'pipeline'      => $pipeline,
-            'input'         => $input,
-            'context'       => $context,
-            'inputOriginal' => $inputOriginal,
+            'action'   => $action,
+            'pipeline' => $pipeline,
+            'input'    => $input,
+            'context'  => $context,
+            'state'    => $pipelineState,
         ];
 
         $result = $this->callUserFuncArray(
@@ -97,24 +101,26 @@ class PipelineProcessor implements PipelineProcessorInterface
     public function callFallback(
         GenericFallback $fallback,
         Pipeline $pipeline,
-        \Throwable $throwable, $input = null, $context = null, $inputOriginal = null
+        \Throwable $throwable, $input = null, $context = null
     ) : array
     {
         $callable = $this->extractHandlerCallable($fallback);
+
+        $pipelineState = $pipeline->getState();
 
         $callableArgs = [
             0 => $throwable,
             1 => $input,
             2 => $context,
-            3 => $inputOriginal,
+            3 => $pipelineState,
         ];
         $callableArgs += [
-            'fallback'      => $fallback,
-            'pipeline'      => $pipeline,
-            'throwable'     => $throwable,
-            'input'         => $input,
-            'context'       => $context,
-            'inputOriginal' => $inputOriginal,
+            'fallback'  => $fallback,
+            'pipeline'  => $pipeline,
+            'throwable' => $throwable,
+            'input'     => $input,
+            'context'   => $context,
+            'state'     => $pipelineState,
         ];
 
         $result = $this->callUserFuncArray(
