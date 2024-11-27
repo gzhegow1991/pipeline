@@ -75,7 +75,7 @@ class Pipeline implements PipelineInterface
     {
         $this->processor = $processor;
 
-        $this->state = (object) [];
+        $this->reset();
     }
 
 
