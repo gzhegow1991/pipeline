@@ -478,10 +478,6 @@ class Pipeline implements PipelineInterface
             return null;
         }
 
-        if (count($this->runtimeThrowables)) {
-            return [];
-        }
-
         $this->runtimePipeCurrentMiddleware = $pipe;
 
         $method = [ $this->processor, 'callMiddleware' ];
