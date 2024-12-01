@@ -2,39 +2,73 @@
 
 namespace Gzhegow\Pipeline;
 
+use Gzhegow\Pipeline\Pipe\Pipe;
+use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
+use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
+
 
 class PipelineFactory implements PipelineFactoryInterface
 {
-    public function newPipeline(PipelineProcessorInterface $processor = null) : PipelineInterface
+    public function newProcessor() : PipelineProcessorInterface
     {
-        $processor = $processor ?? $this->newPipelineProcessor();
+        $processor = new PipelineProcessor($this);
 
-        $pipeline = new Pipeline($processor);
+        return $processor;
+    }
+
+    public function newProcessManager(
+        PipelineProcessorInterface $processor = null
+    ) : PipelineProcessManagerInterface
+    {
+        $processor = $processor ?? $this->newProcessor();
+
+        $processManager = new PipelineProcessManager(
+            $this,
+            $processor
+        );
+
+        return $processManager;
+    }
+
+    public function newFacade(PipelineProcessManagerInterface $processManager = null) : Pipeline
+    {
+        $processManager = $processManager ?? $this->newProcessManager();
+
+        $facade = new Pipeline(
+            $this,
+            $processManager
+        );
+
+        return $facade;
+    }
+
+
+    public function newPipeline() : PipelineChain
+    {
+        $pipeline = new PipelineChain();
 
         return $pipeline;
     }
 
-    public function newPipelineProcessor() : PipelineProcessorInterface
+    public function newMiddleware($from) : MiddlewareChain
     {
-        $pipelineProcessor = new PipelineProcessor($this);
+        $generic = GenericHandlerMiddleware::from($from);
 
-        return $pipelineProcessor;
+        $pipe = Pipe::from($generic);
+
+        $middleware = new MiddlewareChain($pipe);
+
+        return $middleware;
     }
 
 
-    /**
-     * @template-covariant T of object
-     *
-     * @param class-string<T>|T $class
-     *
-     * @return T
-     */
     public function newHandlerObject(string $class, array $parameters = []) : object
     {
-        [ $list ] = Lib::array_kwargs($parameters);
+        [ $args ] = Lib::array_kwargs($parameters);
 
-        $handler = new $class(...$list);
+        $object = new $class(...$args);
 
-        return $handler;
+        return $object;
     }
 }

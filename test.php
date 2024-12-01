@@ -89,9 +89,11 @@ function _assert_call(\Closure $fn, array $exResult = null, string $exOutput = n
                 $trace[ 0 ][ 'file' ], $trace[ 0 ][ 'line' ]
             );
         }
+
+        echo $exOutput . PHP_EOL;
     }
 
-    echo 'Test OK.' . PHP_EOL;
+    echo 'Test OK.' . PHP_EOL . PHP_EOL;
 
     return true;
 }
@@ -102,21 +104,38 @@ function _assert_call(\Closure $fn, array $exResult = null, string $exOutput = n
 // > сначала всегда фабрика
 $factory = new \Gzhegow\Pipeline\PipelineFactory();
 
+// > создаем процессор, который будет запускать методы шагов конвеера
+// > его можно наследовать, соединив с инжектором зависимостей
+$processor = $factory->newProcessor();
 
-// >>> TEST 1
+// > создаем менеджер процессов, который будет запускать конвееры и шаги конвеера
+// > его можно наследовать, соединив с диспетчером процессов при параллельности
+$processManager = $factory->newProcessManager($processor);
+
+// > создаем фасад (не обязательно)
+// > его задача будет помнить и предоставлять посредников $factory/$processor к конкретному $pipeline (он используется в вызове $pipeline->run())
+$facade = $factory->newFacade($processManager);
+
+// > сохраняем фасад глобально, чтобы работали статические методы
+\Gzhegow\Pipeline\Pipeline::setInstance($facade);
+
+
+// >>> TEST
 // > цепочка может состоять из одного или нескольких действий
 $fn = function () use ($factory) {
+    _dump('[ TEST 1 ]');
+
     // > создаем конвеер
     $pipeline = $factory->newPipeline();
+
+    // > вызывать можно и статически, если перед этим сохранили фасад
+    // $pipeline = \Gzhegow\Pipeline\PipelineFacade::new();
 
     // > добавляем действия в конвеер
     $pipeline
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
     ;
-
-    // > конвеер можно будет запустить заново, если сбросить его состояние перед вызовом ->run(), при первом запуске
-    $pipeline->reset();
 
     // > устанавливаем стартовый $input, который будет меняться при прохождении по цепочке на результат прошлого действия
     $myInput = 'any data 1';
@@ -125,17 +144,16 @@ $fn = function () use ($factory) {
     // > разумно передать сюда объект, чтобы он был общим для всех шагов и складывать сюда отчеты или промежуточные данные
     $myContext = (object) [];
 
-    // > также можно установить произвольные данные вручную используя внутреннее поле $state
-    // > в этом поле должны храниться данные, нужные для работы самого Pipeline, а не решаемой задачи
-    $state = $pipeline->getState();
-    $state->myProperty = 123;
-
     // > запускаем конвеер
     $result = $pipeline->run($myInput, $myContext);
+    // $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext); // то же самое
+    // $result = $processManager->run($pipeline, $myInput, $myContext); // то же самое
+
     _dump('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
+"[ TEST 1 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
 "[ RESULT ]" | "Gzhegow\\Pipeline\\Handler\\Demo\\Action\\Demo2ndAction::__invoke result."
@@ -143,11 +161,13 @@ Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
 HEREDOC
 );
 
-// >>> TEST 2
+// >>> TEST
 // > действия могут передавать результат выполнения из одного в другое
 $fn = function () use ($factory) {
+    _dump('[ TEST 2 ]');
+
     // > создаем конвеер
-    $pipeline = $factory->newPipeline();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -155,14 +175,16 @@ $fn = function () use ($factory) {
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
     ;
 
-    // > запускаем конвеер
     $myInput = 'any data 2';
     $myContext = null;
+
+    // > запускаем конвеер
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
+"[ TEST 2 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 "[ RESULT ]" | "any data 2"
@@ -170,51 +192,13 @@ Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 HEREDOC
 );
 
-// >>> TEST 3
-// > цепочка может состоять даже из цепочек
-$fn = function () use ($factory) {
-    // > создаем дочерний конвеер
-    $pipelineChild = $factory->newPipeline();
-
-    // > добавляем действия в конвеер
-    $pipelineChild
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
-    ;
-
-    // > создаем родительский конвеер
-    $pipeline = $factory->newPipeline();
-
-    // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
-    $pipeline
-        ->pipeline($pipelineChild)                                             // этот конвеер просто передаст $result дальше
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)   // на этом этапе результат будет заменен
-        ->pipeline($pipelineChild) // этот конвеер передаст измененный $result дальше
-    ;
-
-    // > запускаем конвеер
-    $myInput = null;
-    $myContext = null;
-    $result = $pipeline->run($myInput, $myContext);
-    _dump('[ RESULT ]', $result);
-    _dump('');
-};
-_assert_call($fn, [], <<<HEREDOC
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
-""
-HEREDOC
-);
-
-// >>> TEST 4
+// >>> TEST
 // > выброшенную ошибку можно превратить в результат используя fallback
 $fn = function () use ($factory) {
+    _dump('[ TEST 3 ]');
+
     // > создаем конвеер
-    $pipeline = $factory->newPipeline();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -222,14 +206,16 @@ $fn = function () use ($factory) {
         ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::class)
     ;
 
-    // > запускаем конвеер
     $myInput = null;
     $myContext = null;
+
+    // > запускаем конвеер
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
+"[ TEST 3 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result."
@@ -237,11 +223,13 @@ Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
 HEREDOC
 );
 
-// >>> TEST 5
+// >>> TEST
 // > цепочка может начинаться с исключения, которое нужно обработать
 $fn = function () use ($factory) {
+    _dump('[ TEST 4 ]');
+
     // > создаем конвеер
-    $pipeline = $factory->newPipeline();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -249,25 +237,29 @@ $fn = function () use ($factory) {
         ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::class)
     ;
 
-    // > запускаем конвеер
     $myInput = null;
     $myContext = null;
+
+    // > запускаем конвеер
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
+"[ TEST 4 ]"
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result."
 ""
 HEREDOC
 );
 
-// >>> TEST 6
+// >>> TEST
 // > если fallback возвращает NULL, то система попробует поймать исключение следующим fallback
 $fn = function () use ($factory) {
+    _dump('[ TEST 5 ]');
+
     // > создаем конвеер
-    $pipeline = $factory->newPipeline();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -276,14 +268,16 @@ $fn = function () use ($factory) {
         ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::class)
     ;
 
-    // > запускаем конвеер
     $myInput = null;
     $myContext = null;
+
+    // > запускаем конвеер
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
+"[ TEST 5 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoSkipFallback::__invoke
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::__invoke
@@ -292,11 +286,13 @@ Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::__invoke
 HEREDOC
 );
 
-// >>> TEST 7
+// >>> TEST
 // > если ни один из fallback не обработает ошибку, ошибка будет выброшена наружу
 $fn = function () use ($factory) {
+    _dump('[ TEST 6 ]');
+
     // > создаем конвеер
-    $pipeline = $factory->newPipeline();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -304,17 +300,18 @@ $fn = function () use ($factory) {
         ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::class)
     ;
 
-    // > запускаем конвеер
     $myInput = null;
     $myContext = null;
+
+    // > запускаем конвеер
     $result = null;
     try {
         $result = $pipeline->run($myInput, $myContext);
     }
-    catch ( \Gzhegow\Pipeline\Exception\Exception\PipelineException $e ) {
+    catch ( \Gzhegow\Pipeline\Exception\Runtime\PipelineException $e ) {
         _dump('[ CATCH ]', get_class($e), $e->getMessage());
 
-        foreach ( $e->getPreviousList() as $ee ) {
+        foreach ( $e->getPreviousStack() as $ee ) {
             _dump('[ CATCH ]', get_class($ee), $ee->getMessage());
         }
     }
@@ -322,36 +319,54 @@ $fn = function () use ($factory) {
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
+"[ TEST 6 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
-"[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception\PipelineException" | "Unhandled exception occured during processing pipeline"
+"[ CATCH ]" | "Gzhegow\Pipeline\Exception\Runtime\PipelineException" | "Unhandled exception occured during processing pipeline"
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception" | "Hello, World!"
 "[ RESULT ]" | NULL
 ""
 HEREDOC
 );
 
-// >>> TEST 8
-// > к любой цепочке можно подключить middleware (они выполняются первыми и оборачивают цепь)
+// >>> TEST
+// > к любой цепочке можно подключить middleware
+// > + они как фильтры, могут пропустить дальнейшие шаги в конвеере
+// > + они как события, могут выполнить дополнительные действия или подготовить входные данные следуюших шагов
 // > если необходимо, чтобы middleware оборачивал только некоторые действия, то их следует обернуть в отдельный Pipeline
 $fn = function () use ($factory) {
+    _dump('[ TEST 7 ]');
+
     // > создаем конвеер
-    $pipeline = $factory->newPipeline();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+
+    // > создаем посредник
+    $middleware = $factory->newMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class);
+
+    // > вызывать можно и статически, если перед этим сохранили фасад
+    // $middleware = \Gzhegow\Pipeline\PipelineFacade::middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class);
+
+    // > добавлять вложенные pipeline/middleware можно также используя синтаксис ->startX()/->endX()
+    $middleware
+        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
+        ->endMiddleware()
+    ;
 
     // > добавляем действия в конвеер
     $pipeline
-        ->middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
-        ->middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
+        ->middleware($middleware)
     ;
 
-    // > запускаем конвеер
     $myInput = null;
     $myContext = null;
+
+    // > запускаем конвеер
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
+"[ TEST 7 ]"
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
@@ -362,61 +377,171 @@ Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
 HEREDOC
 );
 
-// >>> TEST 9
-// > middleware может предотвратить выполнение цепочки (то есть уже написанный код можно отменить, не редактируя его)
-$fn = function () use ($factory) {
-    // > создаем конвеер
-    $pipeline = $factory->newPipeline();
-
-    // > добавляем действия в конвеер
-    $pipeline
-        ->middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
-    ;
-
-    // > запускаем конвеер
-    $myInput = null;
-    $myContext = null;
-    $result = $pipeline->run($myInput, $myContext);
-    _dump('[ RESULT ]', $result);
-    _dump('');
-};
-_assert_call($fn, [], <<<HEREDOC
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke result."
-""
-HEREDOC
-);
-
-// >>> TEST 10
+// >>> TEST
 // > middleware может предотвратить выполнение цепочки (то есть уже написанный код можно отменить фильтром, не редактируя его)
 $fn = function () use ($factory) {
+    _dump('[ TEST 8 ]');
+
     // > создаем конвеер
-    $pipeline = $factory->newPipeline();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
 
     // > добавляем действия в конвеер
     $pipeline
-        ->middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
-        ->middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::class)
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::class)
+        ->endMiddleware()
+        ->endMiddleware()
     ;
 
-    // > запускаем конвеер
     $myInput = null;
     $myContext = null;
+
+    // > запускаем конвеер
     $result = $pipeline->run($myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
+"[ TEST 8 ]"
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
 @after :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
 @after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke result."
+""
+HEREDOC
+);
+
+// >>> TEST
+// > цепочка может состоять даже из цепочек
+$fn = function () use ($factory) {
+    _dump('[ TEST 9 ]');
+
+    // > создаем дочерний конвеер
+    $pipelineChild = \Gzhegow\Pipeline\Pipeline::new();
+
+    // > добавляем действия в конвеер
+    $pipelineChild
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+    ;
+
+    // > создаем родительский конвеер
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+
+    // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
+    // > при добавлении конвееров они будут склонированы, то есть один и тот же экземпляр может быть добавлен сколько угодно раз
+    $pipeline
+        ->pipeline($pipelineChild)                                           // этот конвеер просто передаст $result дальше
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class) // на этом этапе результат будет заменен
+        ->pipeline($pipelineChild)                                           // этот конвеер передаст измененный $result дальше
+    ;
+
+    $myInput = null;
+    $myContext = null;
+
+    // > запускаем конвеер
+    $result = $pipeline->run($myInput, $myContext);
+    _dump('[ RESULT ]', $result);
+    _dump('');
+};
+_assert_call($fn, [], <<<HEREDOC
+"[ TEST 9 ]"
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke result."
+""
+HEREDOC
+);
+
+// >>> TEST
+// > даже из цепочек-в-цепочках может состоять
+// > вообще, этот конструктор нужен, чтобы ограничивать действие middleware только на несколько действий, а не на все
+$fn = function () use ($factory) {
+    _dump('[ TEST 10 ]');
+
+    // > добавляем действия в конвеер 2 уровня
+    $middleware2nd = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::class)
+    ;
+
+    $pipeline2nd = \Gzhegow\Pipeline\Pipeline::new()
+        ->middleware($middleware2nd)
+    ;
+
+    // > добавляем действия (в том числе дочерние конвееры) в конвеер 1 уровня
+    $middleware1st = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
+        ->pipeline($pipeline2nd)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
+    ;
+
+    $pipeline1st = \Gzhegow\Pipeline\Pipeline::new()
+        ->middleware($middleware1st)
+    ;
+
+    // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new()
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->pipeline($pipeline1st)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->pipeline($pipeline1st)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->pipeline($pipeline1st)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+    ;
+
+    $myInput = null;
+    $myContext = null;
+
+    // > запускаем конвеер
+    $result = $pipeline->run($myInput, $myContext);
+    _dump('[ RESULT ]', $result);
+    _dump('');
+};
+_assert_call($fn, [], <<<HEREDOC
+"[ TEST 10 ]"
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
 ""
 HEREDOC
 );

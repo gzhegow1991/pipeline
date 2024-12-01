@@ -2,12 +2,12 @@
 
 namespace Gzhegow\Pipeline\Handler\Demo\Middleware;
 
-use Gzhegow\Pipeline\PipelineInterface;
+use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 
 
 class DemoOmitMiddleware
 {
-    public function __invoke(PipelineInterface $pipeline, $result = null, $input = null, $context = null) // : mixed
+    public function __invoke(PipelineProcessInterface $pipeline, $input = null, $context = null, $state = null) // : mixed
     {
         $method = __METHOD__;
 

@@ -10,7 +10,7 @@ class Lib
 
         $lines = array_map(
             static function ($v) {
-                $content = \Gzhegow\Pipeline\Lib::php_var_export($v, [ "with_objects" => false ]);
+                $content = static::php_var_export($v, [ "with_objects" => false ]);
 
                 $content = trim($content);
                 $content = preg_replace('/\s+/', ' ', $content);
@@ -31,7 +31,7 @@ class Lib
 
         $dumps = array_map(
             static function ($v) {
-                return \Gzhegow\Pipeline\Lib::php_var_export($v, [ "with_objects" => false ]);
+                return Lib::php_var_export($v, [ "with_objects" => false ]);
             },
             $values
         );
@@ -55,46 +55,48 @@ class Lib
         $__unresolved = [];
 
         for ( $i = 0; $i < $len; $i++ ) {
-            $a = $args[ $i ];
+            $arg = $args[ $i ];
 
-            if (is_a($a, \Throwable::class)) {
-                $previousList[ $i ] = $a;
+            if (is_a($arg, \Throwable::class)) {
+                $previousList[ $i ] = $arg;
 
                 continue;
             }
 
             if (
-                is_array($a)
-                || is_a($a, \stdClass::class)
+                is_array($arg)
+                || is_a($arg, \stdClass::class)
             ) {
-                $messageDataList[ $i ] = (array) $a;
+                $messageData = (array) $arg;
 
-                if ('' !== ($messageString = (string) $messageDataList[ $i ][ 0 ])) {
+                $messageString = isset($messageData[ 0 ])
+                    ? (string) $messageData[ 0 ]
+                    : '';
+
+                if ('' !== $messageString) {
+                    unset($messageData[ 0 ]);
+
                     $messageList[ $i ] = $messageString;
-
-                    unset($messageDataList[ $i ][ 0 ]);
-
-                    if (! $messageDataList[ $i ]) {
-                        unset($messageDataList[ $i ]);
-                    }
                 }
 
-                continue;
-            }
-
-            if (is_int($a)) {
-                $codeList[ $i ] = $a;
+                $messageDataList[ $i ] = $messageData;
 
                 continue;
             }
 
-            if ('' !== ($vString = (string) $a)) {
+            if (is_int($arg)) {
+                $codeList[ $i ] = $arg;
+
+                continue;
+            }
+
+            if ('' !== ($vString = (string) $arg)) {
                 $messageList[ $i ] = $vString;
 
                 continue;
             }
 
-            $__unresolved[ $i ] = $a;
+            $__unresolved[ $i ] = $arg;
         }
 
         for ( $i = 0; $i < $len; $i++ ) {
@@ -404,7 +406,6 @@ class Lib
         } elseif (is_array($mixed)) {
             $list = array_values($mixed);
 
-            /** @noinspection PhpWrongStringConcatenationInspection */
             [ $classOrObject, $_method ] = $list + [ '', '' ];
 
             is_object($classOrObject)

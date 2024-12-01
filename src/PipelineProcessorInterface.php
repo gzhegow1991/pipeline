@@ -2,9 +2,10 @@
 
 namespace Gzhegow\Pipeline;
 
-use Gzhegow\Pipeline\Handler\Action\GenericAction;
-use Gzhegow\Pipeline\Handler\Fallback\GenericFallback;
-use Gzhegow\Pipeline\Handler\Middleware\GenericMiddleware;
+use Gzhegow\Pipeline\Process\PipelineProcessInterface;
+use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
+use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
+use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
 
 interface PipelineProcessorInterface
@@ -13,16 +14,16 @@ interface PipelineProcessorInterface
      * @return array{ 0?: mixed }
      */
     public function callMiddleware(
-        GenericMiddleware $middleware,
-        Pipeline $pipeline, $input = null, $context = null
+        GenericHandlerMiddleware $middleware,
+        PipelineProcessInterface $process, $input = null, $context = null
     ) : array;
 
     /**
      * @return array{ 0?: mixed }
      */
     public function callAction(
-        GenericAction $action,
-        Pipeline $pipeline,
+        GenericHandlerAction $action,
+        PipelineProcessInterface $process,
         $input = null, $context = null
     ) : array;
 
@@ -30,8 +31,8 @@ interface PipelineProcessorInterface
      * @return array{ 0?: mixed }
      */
     public function callFallback(
-        GenericFallback $fallback,
-        Pipeline $pipeline,
+        GenericHandlerFallback $fallback,
+        PipelineProcessInterface $process,
         \Throwable $throwable, $input = null, $context = null
     ) : array;
 }

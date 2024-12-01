@@ -1,20 +1,20 @@
 <?php
 
-namespace Gzhegow\Pipeline\Exception\Exception;
+namespace Gzhegow\Pipeline\Exception\Runtime;
 
 use Gzhegow\Pipeline\Lib;
-use Gzhegow\Pipeline\Exception\Exception;
+use Gzhegow\Pipeline\Exception\RuntimeException;
 use Gzhegow\Pipeline\Exception\ExceptionInterface;
 
 
-class PipelineException extends Exception
+class PipelineException extends RuntimeException
     implements ExceptionInterface
 {
     public $message;
     public $code;
     public $previous;
 
-    public $previousList = [];
+    public $previousStack = [];
 
 
     public function __construct(...$errors)
@@ -29,13 +29,13 @@ class PipelineException extends Exception
     }
 
 
-    public function getPreviousList() : array
+    public function getPreviousStack() : array
     {
-        return $this->previousList;
+        return $this->previousStack;
     }
 
     public function addPrevious(\Throwable $throwable) : void
     {
-        $this->previousList[] = $throwable;
+        $this->previousStack[] = $throwable;
     }
 }

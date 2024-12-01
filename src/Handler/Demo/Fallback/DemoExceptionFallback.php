@@ -5,7 +5,7 @@ namespace Gzhegow\Pipeline\Handler\Demo\Fallback;
 
 class DemoExceptionFallback
 {
-    public function __invoke(\Throwable $e, $result = null, $input = null, $context = null)
+    public function __invoke(\Throwable $e, $input = null, $context = null, $state = null)
     {
         if (! is_a($e, \Exception::class)) return null;
 

@@ -2,69 +2,134 @@
 
 namespace Gzhegow\Pipeline\Pipe;
 
-use Gzhegow\Pipeline\Pipeline;
+use Gzhegow\Pipeline\Chain\PipelineChain;
+use Gzhegow\Pipeline\Chain\MiddlewareChain;
 use Gzhegow\Pipeline\Handler\GenericHandler;
+use Gzhegow\Pipeline\Chain\ChainInterface;
+use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
+use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
+use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
 
+/**
+ * @template-covariant T of ChainInterface|GenericHandler
+ */
 class Pipe
 {
-    const TYPE_PIPELINE   = 1 << 0;
-    const TYPE_MIDDLEWARE = 1 << 1;
-    const TYPE_ACTION     = 1 << 2;
-    const TYPE_FALLBACK   = 1 << 3;
-    // const TYPE_PIPELINE   = 'PIPELINE';
-    // const TYPE_MIDDLEWARE = 'MIDDLEWARE';
-    // const TYPE_ACTION     = 'ACTION';
-    // const TYPE_FALLBACK   = 'FALLBACK';
-
-    const LIST_TYPE = [
-        self::TYPE_PIPELINE   => 'pipelineList',
-        self::TYPE_MIDDLEWARE => 'middlewareList',
-        self::TYPE_ACTION     => 'actionList',
-        self::TYPE_FALLBACK   => 'fallbackList',
-    ];
-
+    /**
+     * @var PipelineChain
+     */
+    public $pipeline;
 
     /**
-     * @var static::TYPE_PIPELINE|static::TYPE_MIDDLEWARE|static::TYPE_ACTION|static::TYPE_FALLBACK
+     * @var MiddlewareChain
      */
-    protected $type;
+    public $middleware;
+
     /**
-     * @var Pipeline
+     * @var GenericHandlerMiddleware
      */
-    protected $pipeline;
+    public $handlerMiddleware;
+
     /**
-     * @var GenericHandler
+     * @var GenericHandlerAction
      */
-    protected $handler;
+    public $handlerAction;
+
+    /**
+     * @var GenericHandlerFallback
+     */
+    public $handlerFallback;
 
 
-    public function __construct(int $type, Pipeline $pipeline = null, GenericHandler $handler = null)
+    public static function from($from) : self
     {
-        if (! isset(static::LIST_TYPE[ $type ])) {
-            throw new \LogicException(
-                'Unknown `type`: ' . $type
-            );
+        $instance = static::tryFrom($from);
+
+        return $instance;
+    }
+
+    public static function tryFrom($from) : ?self
+    {
+        $instance = null
+            ?? static::tryFromInstance($from)
+            ?? static::tryFromMiddleware($from)
+            ?? static::tryFromHandlerAction($from)
+            ?? static::tryFromHandlerFallback($from)
+            ?? static::tryFromHandlerMiddleware($from)
+            ?? static::tryFromPipeline($from)
+        ;
+
+        return $instance;
+    }
+
+
+    public static function tryFromInstance($from) : ?self
+    {
+        if (! ($from instanceof static)) {
+            return null;
         }
 
-        $this->type = $type;
-        $this->pipeline = $pipeline;
-        $this->handler = $handler;
+        return $from;
     }
 
-
-    public function getType() : int
+    public static function tryFromMiddleware($from) : ?self
     {
-        return $this->type;
+        if (! ($from instanceof MiddlewareChain)) {
+            return null;
+        }
+
+        $instance = new static();
+        $instance->middleware = $from;
+
+        return $instance;
     }
 
-    public function getHandler() : ?GenericHandler
+    public static function tryFromHandlerAction($from) : ?self
     {
-        return $this->handler;
+        if (! ($from instanceof GenericHandlerAction)) {
+            return null;
+        }
+
+        $instance = new static();
+        $instance->handlerAction = $from;
+
+        return $instance;
     }
 
-    public function getPipeline() : ?Pipeline
+    public static function tryFromHandlerFallback($from) : ?self
     {
-        return $this->pipeline;
+        if (! ($from instanceof GenericHandlerFallback)) {
+            return null;
+        }
+
+        $instance = new static();
+        $instance->handlerFallback = $from;
+
+        return $instance;
+    }
+
+    public static function tryFromHandlerMiddleware($from) : ?self
+    {
+        if (! ($from instanceof GenericHandlerMiddleware)) {
+            return null;
+        }
+
+        $instance = new static();
+        $instance->handlerMiddleware = $from;
+
+        return $instance;
+    }
+
+    public static function tryFromPipeline($from) : ?self
+    {
+        if (! ($from instanceof PipelineChain)) {
+            return null;
+        }
+
+        $instance = new static();
+        $instance->pipeline = $from;
+
+        return $instance;
     }
 }
