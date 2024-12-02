@@ -37,16 +37,16 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline) {
 set_exception_handler(function ($e) {
     $current = $e;
     do {
-        echo PHP_EOL;
+        echo "\n";
 
-        echo \Gzhegow\Pipeline\Lib::php_var_dump($current) . PHP_EOL;
-        echo $current->getMessage() . PHP_EOL;
+        echo \Gzhegow\Pipeline\Lib::php_var_dump($current) . "\n";
+        echo $current->getMessage() . "\n";
 
         foreach ( $e->getTrace() as $traceItem ) {
-            echo "{$traceItem['file']} : {$traceItem['line']}" . PHP_EOL;
+            echo "{$traceItem['file']} : {$traceItem['line']}" . "\n";
         }
 
-        echo PHP_EOL;
+        echo "\n";
     } while ( $current = $current->getPrevious() );
 
     die();
@@ -54,9 +54,14 @@ set_exception_handler(function ($e) {
 
 
 // > добавляем несколько функция для тестирования
-function _dump($value, ...$values)
+function _dump($value, ...$values) : void
 {
-    echo \Gzhegow\Pipeline\Lib::php_dump($value, ...$values) . PHP_EOL;
+    echo \Gzhegow\Pipeline\Lib::php_dump($value, ...$values) . "\n";
+}
+
+function _eol(string $str) : string
+{
+    return implode("\n", explode(PHP_EOL, $str));
 }
 
 function _error($message, $code = -1, $previous = null, string $file = null, int $line = null)
@@ -73,9 +78,11 @@ function _error($message, $code = -1, $previous = null, string $file = null, int
     return $e;
 }
 
-function _assert_call(\Closure $fn, array $exResult = null, string $exOutput = null)
+function _assert_call(\Closure $fn, array $exResult = null, string $exOutput = null) : void
 {
     $exResult = $exResult ?? [];
+
+    $mt = microtime(true);
 
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
@@ -101,7 +108,7 @@ function _assert_call(\Closure $fn, array $exResult = null, string $exOutput = n
     }
 
     if (null !== $exOutput) {
-        if ($exOutput !== $output) {
+        if (_eol($exOutput) !== _eol($output)) {
             print_r($output);
 
             throw _error(
@@ -110,12 +117,13 @@ function _assert_call(\Closure $fn, array $exResult = null, string $exOutput = n
             );
         }
 
-        echo $exOutput . PHP_EOL;
+        echo $exOutput . "\n";
     }
 
-    echo 'Test OK.' . PHP_EOL . PHP_EOL;
+    $mtDiffSeconds = round(microtime(true) - $mt, 6);
+    $mtDiffSeconds .= 's';
 
-    return true;
+    echo 'Test OK - ' . $mtDiffSeconds . "\n\n";
 }
 
 
