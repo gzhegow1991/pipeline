@@ -118,6 +118,18 @@ abstract class AbstractProcess implements PipelineProcessInterface
         }
 
         if (null === $step) {
+            if ($pipe->handlerFallback && ! count($this->throwables)) {
+                $step = $this->getNextStep();
+            }
+        }
+
+        if (null === $step) {
+            if ($pipe->handlerAction && count($this->throwables)) {
+                $step = $this->getNextStep();
+            }
+        }
+
+        if (null === $step) {
             $step = new Step();
             $step->process = $this;
             $step->pipe = $pipe;
