@@ -233,8 +233,14 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
             return null;
         }
 
-        if (null !== ($process->latestThrowable())) {
-            return null;
+        if (null !== ($throwable = $process->latestThrowable())) {
+            throw new RuntimeException(
+                [
+                    'The `action` pipe should not be called with any throwables in stack',
+                    $pipe,
+                    $throwable,
+                ]
+            );
         }
 
         $resultArray = [];
@@ -263,7 +269,12 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
         }
 
         if (null === ($throwable = $process->latestThrowable())) {
-            return null;
+            throw new RuntimeException(
+                [
+                    'The `fallback` pipe should not be called without any throwables in stack',
+                    $pipe,
+                ]
+            );
         }
 
         $resultArray = [];
