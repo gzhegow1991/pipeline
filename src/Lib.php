@@ -144,6 +144,7 @@ class Lib
     {
         $maxlen = $options[ 'maxlen' ] ?? null;
         $withArrays = $options[ 'with_arrays' ] ?? true;
+        $withIds = $options[ 'with_ids' ] ?? true;
 
         if ($maxlen < 1) $maxlen = null;
 
@@ -152,7 +153,11 @@ class Lib
 
         if (is_iterable($value)) {
             if (is_object($value)) {
-                $var = 'iterable(' . get_class($value) . ' # ' . spl_object_id($value) . ')';
+                $id = $withIds
+                    ? ' # ' . spl_object_id($value)
+                    : '';
+
+                $var = 'iterable(' . get_class($value) . $id . ')';
 
             } else {
                 $var = 'array(' . count($value) . ')';
@@ -176,7 +181,11 @@ class Lib
 
         } else {
             if (is_object($value)) {
-                $var = 'object(' . get_class($value) . ' # ' . spl_object_id($value) . ')';
+                $id = $withIds
+                    ? ' # ' . spl_object_id($value)
+                    : '';
+
+                $var = 'object(' . get_class($value) . $id . ')';
 
                 if (method_exists($value, '__debugInfo')) {
                     ob_start();
@@ -187,10 +196,14 @@ class Lib
             } elseif (is_string($value)) {
                 $var = 'string(' . strlen($value) . ')';
 
-                $dump = "\"{$value}\"";
+                $dump = "\"{$dump}\"";
 
             } elseif (is_resource($value)) {
-                $var = '{ resource(' . gettype($value) . ' # ' . ((int) $value) . ') }';
+                $id = $withIds
+                    ? ' # ' . ((int) $value)
+                    : '';
+
+                $var = '{ resource(' . get_resource_type($value) . $id . ') }';
 
             } else {
                 $var = null
@@ -235,6 +248,7 @@ class Lib
         $indent = $options[ 'indent' ] ?? "  ";
         $newline = $options[ 'newline' ] ?? PHP_EOL;
         $withObjects = $options[ 'with_objects' ] ?? true;
+        $withIds = $options[ 'with_ids' ] ?? true;
 
         switch ( gettype($var) ) {
             case "NULL":
@@ -250,7 +264,6 @@ class Lib
                 break;
 
             case "array":
-
                 $keys = array_keys($var);
 
                 foreach ( $keys as $key ) {
@@ -292,7 +305,25 @@ class Lib
                     $result = var_export($var, true);
 
                 } else {
-                    $result = '{ object(' . get_class($var) . ' # ' . spl_object_id($var) . ') }';
+                    $id = $withIds
+                        ? ' # ' . spl_object_id($var)
+                        : null;
+
+                    $result = '{ object(' . get_class($var) . $id . ') }';
+                }
+
+                break;
+
+            case "resource":
+                if ($withObjects) {
+                    $result = var_export($var, true);
+
+                } else {
+                    $id = $withIds
+                        ? ' # ' . spl_object_id($var)
+                        : null;
+
+                    $result = '{ resource(' . get_resource_type($var) . $id . ') }';
                 }
 
                 break;
