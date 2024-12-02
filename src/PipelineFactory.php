@@ -46,7 +46,7 @@ class PipelineFactory implements PipelineFactoryInterface
 
     public function newPipeline() : PipelineChain
     {
-        $pipeline = new PipelineChain();
+        $pipeline = new PipelineChain($this);
 
         return $pipeline;
     }
@@ -57,7 +57,7 @@ class PipelineFactory implements PipelineFactoryInterface
 
         $pipe = Pipe::from($generic);
 
-        $middleware = new MiddlewareChain($pipe);
+        $middleware = new MiddlewareChain($this, $pipe);
 
         return $middleware;
     }

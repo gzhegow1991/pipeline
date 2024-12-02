@@ -150,7 +150,7 @@ $facade = $factory->newFacade($processManager);
 
 // >>> TEST
 // > цепочка может состоять из одного или нескольких действий
-$fn = function () use ($factory) {
+$fn = function () use ($factory, $processManager) {
     _dump('[ TEST 1 ]');
 
     // > создаем конвеер
@@ -172,10 +172,13 @@ $fn = function () use ($factory) {
     // > разумно передать сюда объект, чтобы он был общим для всех шагов и складывать сюда отчеты или промежуточные данные
     $myContext = (object) [];
 
-    // > запускаем конвеер
+    // > устанавливаем менеджер процессов для цепочки
+    $pipeline->setProcessManager($processManager);
+
+    // > запускаем конвеер из самой цепочки
     $result = $pipeline->run($myInput, $myContext);
-    // $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext); // то же самое
     // $result = $processManager->run($pipeline, $myInput, $myContext); // то же самое
+    // $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext); // то же самое
 
     _dump('[ RESULT ]', $result);
     _dump('');
@@ -191,7 +194,7 @@ HEREDOC
 
 // >>> TEST
 // > действия могут передавать результат выполнения из одного в другое
-$fn = function () use ($factory) {
+$fn = function () {
     _dump('[ TEST 2 ]');
 
     // > создаем конвеер
@@ -207,7 +210,7 @@ $fn = function () use ($factory) {
     $myContext = null;
 
     // > запускаем конвеер
-    $result = $pipeline->run($myInput, $myContext);
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
@@ -222,7 +225,7 @@ HEREDOC
 
 // >>> TEST
 // > выброшенную ошибку можно превратить в результат используя fallback
-$fn = function () use ($factory) {
+$fn = function () {
     _dump('[ TEST 3 ]');
 
     // > создаем конвеер
@@ -238,7 +241,7 @@ $fn = function () use ($factory) {
     $myContext = null;
 
     // > запускаем конвеер
-    $result = $pipeline->run($myInput, $myContext);
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
@@ -253,7 +256,7 @@ HEREDOC
 
 // >>> TEST
 // > цепочка может начинаться с исключения, которое нужно обработать
-$fn = function () use ($factory) {
+$fn = function () {
     _dump('[ TEST 4 ]');
 
     // > создаем конвеер
@@ -269,7 +272,7 @@ $fn = function () use ($factory) {
     $myContext = null;
 
     // > запускаем конвеер
-    $result = $pipeline->run($myInput, $myContext);
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
@@ -283,7 +286,7 @@ HEREDOC
 
 // >>> TEST
 // > если fallback возвращает NULL, то система попробует поймать исключение следующим fallback
-$fn = function () use ($factory) {
+$fn = function () {
     _dump('[ TEST 5 ]');
 
     // > создаем конвеер
@@ -300,7 +303,7 @@ $fn = function () use ($factory) {
     $myContext = null;
 
     // > запускаем конвеер
-    $result = $pipeline->run($myInput, $myContext);
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
@@ -316,7 +319,7 @@ HEREDOC
 
 // >>> TEST
 // > если ни один из fallback не обработает ошибку, ошибка будет выброшена наружу
-$fn = function () use ($factory) {
+$fn = function () {
     _dump('[ TEST 6 ]');
 
     // > создаем конвеер
@@ -334,7 +337,7 @@ $fn = function () use ($factory) {
     // > запускаем конвеер
     $result = null;
     try {
-        $result = $pipeline->run($myInput, $myContext);
+        $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     }
     catch ( \Gzhegow\Pipeline\Exception\Runtime\PipelineException $e ) {
         _dump('[ CATCH ]', get_class($e), $e->getMessage());
@@ -389,7 +392,7 @@ $fn = function () use ($factory) {
     $myContext = null;
 
     // > запускаем конвеер
-    $result = $pipeline->run($myInput, $myContext);
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
@@ -407,7 +410,7 @@ HEREDOC
 
 // >>> TEST
 // > middleware может предотвратить выполнение цепочки (то есть уже написанный код можно отменить фильтром, не редактируя его)
-$fn = function () use ($factory) {
+$fn = function () {
     _dump('[ TEST 8 ]');
 
     // > создаем конвеер
@@ -429,7 +432,7 @@ $fn = function () use ($factory) {
     $myContext = null;
 
     // > запускаем конвеер
-    $result = $pipeline->run($myInput, $myContext);
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
@@ -446,7 +449,7 @@ HEREDOC
 
 // >>> TEST
 // > цепочка может состоять даже из цепочек
-$fn = function () use ($factory) {
+$fn = function () {
     _dump('[ TEST 9 ]');
 
     // > создаем дочерний конвеер
@@ -473,7 +476,7 @@ $fn = function () use ($factory) {
     $myContext = null;
 
     // > запускаем конвеер
-    $result = $pipeline->run($myInput, $myContext);
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };
@@ -492,7 +495,7 @@ HEREDOC
 // >>> TEST
 // > даже из цепочек-в-цепочках может состоять
 // > вообще, этот конструктор нужен, чтобы ограничивать действие middleware только на несколько действий, а не на все
-$fn = function () use ($factory) {
+$fn = function () {
     _dump('[ TEST 10 ]');
 
     // > добавляем действия в конвеер 2 уровня
@@ -533,7 +536,7 @@ $fn = function () use ($factory) {
     $myContext = null;
 
     // > запускаем конвеер
-    $result = $pipeline->run($myInput, $myContext);
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     _dump('[ RESULT ]', $result);
     _dump('');
 };

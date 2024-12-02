@@ -2,10 +2,11 @@
 
 namespace Gzhegow\Pipeline\Chain;
 
-use Gzhegow\Pipeline\Pipeline;
 use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Handler\GenericHandler;
+use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Exception\RuntimeException;
+use Gzhegow\Pipeline\PipelineProcessManagerInterface;
 use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
@@ -14,6 +15,15 @@ use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 
 abstract class AbstractChain implements ChainInterface
 {
+    /**
+     * @var PipelineFactoryInterface
+     */
+    protected $factory;
+    /**
+     * @var PipelineProcessManagerInterface
+     */
+    protected $processManager;
+
     /**
      * @var ChainInterface
      */
@@ -27,6 +37,25 @@ abstract class AbstractChain implements ChainInterface
      * @var \Throwable[]
      */
     protected $throwables = [];
+
+
+    public function __construct(PipelineFactoryInterface $factory)
+    {
+        $this->factory = $factory;
+    }
+
+
+    /**
+     * @param PipelineProcessManagerInterface $processManager
+     *
+     * @return static
+     */
+    public function setProcessManager(PipelineProcessManagerInterface $processManager) // : static
+    {
+        $this->processManager = $processManager;
+
+        return $this;
+    }
 
 
     /**
@@ -51,7 +80,7 @@ abstract class AbstractChain implements ChainInterface
 
     public function startPipeline() : PipelineChain
     {
-        $pipeline = Pipeline::new();
+        $pipeline = $this->factory->newPipeline();
 
         $this->pipeline($pipeline);
 
@@ -86,7 +115,7 @@ abstract class AbstractChain implements ChainInterface
 
     public function startMiddleware($from) : MiddlewareChain
     {
-        $middleware = Pipeline::middleware($from);
+        $middleware = $this->factory->newMiddleware($from);
 
         $this->middleware($middleware);
 
@@ -176,7 +205,13 @@ abstract class AbstractChain implements ChainInterface
 
     public function run($input = null, $context = null) // : mixed
     {
-        $result = Pipeline::run($this, $input, $context);
+        if (! $this->processManager) {
+            throw new RuntimeException(
+                'You have to call ->setProcessManager() to use method ->run() directly from chain'
+            );
+        }
+
+        $result = $this->processManager->run($this, $input, $context);
 
         return $result;
     }

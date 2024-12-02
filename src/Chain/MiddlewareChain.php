@@ -5,6 +5,7 @@ namespace Gzhegow\Pipeline\Chain;
 use Gzhegow\Pipeline\Lib;
 use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Exception\LogicException;
+use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
 
@@ -16,8 +17,10 @@ class MiddlewareChain extends AbstractChain
     protected $pipe;
 
 
-    public function __construct(Pipe $pipe)
+    public function __construct(PipelineFactoryInterface $factory, Pipe $pipe)
     {
+        parent::__construct($factory);
+
         if (null === $pipe->handlerMiddleware) {
             throw new LogicException(
                 [

@@ -2,6 +2,7 @@
 
 namespace Gzhegow\Pipeline;
 
+use Gzhegow\Pipeline\Exception\RuntimeException;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
 use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
@@ -84,9 +85,18 @@ class Pipeline
      */
     public static function getInstance(self $facade = null) // : static
     {
-        return static::$instances[ static::class ] = null
+        $_facade = null
             ?? $facade
-            ?? static::$instances[ static::class ];
+            ?? static::$instances[ static::class ]
+            ?? null;
+
+        if (null === $_facade) {
+            throw new RuntimeException(
+                'You have to call Pipeline::setInstance() to use facade statically'
+            );
+        }
+
+        return static::$instances[ static::class ] = $_facade;
     }
 
     public static function setInstance(?self $facade) : void
