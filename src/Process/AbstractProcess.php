@@ -95,45 +95,41 @@ abstract class AbstractProcess implements PipelineProcessInterface
 
         next($this->pipes);
 
-        $step = null;
+        if ($pipe->middleware) {
+            $nestedProcess = $this->processManager->newMiddlewareProcess($pipe->middleware);
 
-        if (null === $step) {
-            if ($pipe->middleware) {
-                $nestedProcess = $this->processManager->newMiddlewareProcess($pipe->middleware);
+            $this->currentNestedProcess = $nestedProcess;
 
-                $this->currentNestedProcess = $nestedProcess;
+            $step = $nestedProcess->getNextStep();
 
-                $step = $nestedProcess->getNextStep();
-            }
+            return $step;
         }
 
-        if (null === $step) {
-            if ($pipe->pipeline) {
-                $nestedProcess = $this->processManager->newPipelineProcess($pipe->pipeline);
+        if ($pipe->pipeline) {
+            $nestedProcess = $this->processManager->newPipelineProcess($pipe->pipeline);
 
-                $this->currentNestedProcess = $nestedProcess;
+            $this->currentNestedProcess = $nestedProcess;
 
-                $step = $this->getNextStep();
-            }
+            $step = $this->getNextStep();
+
+            return $step;
         }
 
-        if (null === $step) {
-            if ($pipe->handlerFallback && ! count($this->throwables)) {
-                $step = $this->getNextStep();
-            }
+        if ($pipe->handlerFallback && ! count($this->throwables)) {
+            $step = $this->getNextStep();
+
+            return $step;
         }
 
-        if (null === $step) {
-            if ($pipe->handlerAction && count($this->throwables)) {
-                $step = $this->getNextStep();
-            }
+        if ($pipe->handlerAction && count($this->throwables)) {
+            $step = $this->getNextStep();
+
+            return $step;
         }
 
-        if (null === $step) {
-            $step = new Step();
-            $step->process = $this;
-            $step->pipe = $pipe;
-        }
+        $step = new Step();
+        $step->process = $this;
+        $step->pipe = $pipe;
 
         return $step;
     }

@@ -493,10 +493,84 @@ HEREDOC
 );
 
 // >>> TEST
-// > даже из цепочек-в-цепочках может состоять
-// > вообще, этот конструктор нужен, чтобы ограничивать действие middleware только на несколько действий, а не на все
+// > может состоять из middleware вложенных друг в друга
 $fn = function () {
     _dump('[ TEST 10 ]');
+
+    // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new()
+        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
+        ->endMiddleware()
+        ->endMiddleware()
+    ;
+
+    $myInput = null;
+    $myContext = null;
+
+    // > запускаем конвеер
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
+    _dump('[ RESULT ]', $result);
+    _dump('');
+};
+_assert_call($fn, [], <<<HEREDOC
+"[ TEST 10 ]"
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
+""
+HEREDOC
+);
+
+// >>> TEST
+// > что не отменяет возможности, что в одном из действий произойдет ошибка, которая должна быть поймана, а цепочка - продолжиться
+$fn = function () {
+    _dump('[ TEST 11 ]');
+
+    // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
+    $pipeline = \Gzhegow\Pipeline\Pipeline::new()
+        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::class)
+        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoRuntimeExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::class)
+        ->endMiddleware()
+        ->endMiddleware()
+    ;
+
+    $myInput = null;
+    $myContext = null;
+
+    // > запускаем конвеер
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
+    _dump('[ RESULT ]', $result);
+    _dump('');
+};
+_assert_call($fn, [], <<<HEREDOC
+"[ TEST 11 ]"
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::__invoke
+Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
+@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result."
+""
+HEREDOC
+);
+
+// >>> TEST
+// > а вообще, даже из цепочек-в-цепочках может состоять
+// > вообще, этот конструктор нужен, чтобы ограничивать действие middleware только на несколько действий, а не на все
+$fn = function () {
+    _dump('[ TEST 12 ]');
 
     // > добавляем действия в конвеер 2 уровня
     $middleware2nd = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
@@ -541,7 +615,7 @@ $fn = function () {
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
-"[ TEST 10 ]"
+"[ TEST 12 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
