@@ -187,7 +187,7 @@ class Lib
             } elseif (is_string($value)) {
                 $var = 'string(' . strlen($value) . ')';
 
-                $dump = "\"{$dump}\"";
+                $dump = "\"{$value}\"";
 
             } elseif (is_resource($value)) {
                 $var = '{ resource(' . gettype($value) . ' # ' . ((int) $value) . ') }';
