@@ -8,35 +8,33 @@ class Lib
     {
         array_unshift($values, $value);
 
-        $lines = array_map(
-            static function ($v) {
-                $content = static::php_var_export($v, [ "with_objects" => false ]);
+        $valueExports = [];
+        foreach ( $values as $i => $v ) {
+            $line = static::php_var_export($v, [ "with_objects" => false ]);
 
-                $content = trim($content);
-                $content = preg_replace('/\s+/', ' ', $content);
+            $line = trim($line);
+            $line = preg_replace('/\s+/', ' ', $line);
 
-                return $content;
-            },
-            $values
-        );
+            $valueExports[ $i ] = $line;
+        }
 
-        $output = implode(' | ', $lines);
+        $output = implode(' | ', $valueExports);
 
         return $output;
     }
 
-    public static function php_print($value, ...$values) : string
+    public static function php_dump_multiline($value, ...$values) : string
     {
         array_unshift($values, $value);
 
-        $dumps = array_map(
-            static function ($v) {
-                return Lib::php_var_export($v, [ "with_objects" => false ]);
-            },
-            $values
-        );
+        $valueExports = [];
+        foreach ( $values as $i => $v ) {
+            $line = static::php_var_export($v, [ "with_objects" => false ]);
 
-        $output = implode(PHP_EOL . PHP_EOL, $dumps);
+            $valueExports[ $i ] = $line;
+        }
+
+        $output = implode(PHP_EOL . PHP_EOL, $valueExports);
 
         return $output;
     }
@@ -145,7 +143,7 @@ class Lib
     public static function php_var_dump($value, array $options = []) : string
     {
         $maxlen = $options[ 'maxlen' ] ?? null;
-        $isWalkArray = $options[ 'is_walk_array' ] ?? true;
+        $withArrays = $options[ 'with_arrays' ] ?? true;
 
         if ($maxlen < 1) $maxlen = null;
 
@@ -159,11 +157,18 @@ class Lib
             } else {
                 $var = 'array(' . count($value) . ')';
 
-                if ($isWalkArray) {
-                    $dump = array_map(function ($v) use ($options) {
+                if ($withArrays) {
+                    $dump = [];
+
+                    foreach ( $value as $i => $v ) {
                         // ! recursion
-                        return static::php_var_dump($v, [ 'is_walk_array' => false ] + $options);
-                    }, $value);
+                        $dump[ $i ] = static::php_var_dump(
+                            $v,
+                            []
+                            + [ 'with_arrays' => false ]
+                            + $options
+                        );
+                    }
 
                     $dump = var_export($dump, true);
                 }
@@ -174,9 +179,9 @@ class Lib
                 $var = 'object(' . get_class($value) . ' # ' . spl_object_id($value) . ')';
 
                 if (method_exists($value, '__debugInfo')) {
-                    $dump = static::php_var_export(
-                        $value, [ "newline" => " " ]
-                    );
+                    ob_start();
+                    var_dump($value);
+                    $dump = ob_get_clean();
                 }
 
             } elseif (is_string($value)) {
@@ -206,13 +211,15 @@ class Lib
                 $dump = explode("\n", $dump);
 
                 $dump = array_map(function ($v) use ($maxlen) {
-                    $v = trim($v);
-                    $v = substr($v, 0, $maxlen) . '...';
+                    $_v = $v;
 
-                    return $v;
+                    $_v = trim($_v);
+                    $_v = substr($_v, 0, $maxlen) . '...';
+
+                    return $_v;
                 }, $dump);
 
-                $dump = implode("\n", $dump);
+                $dump = implode(PHP_EOL, $dump);
             }
 
             $_value = "{$var} : {$dump}";
@@ -226,7 +233,7 @@ class Lib
     public static function php_var_export($var, array $options = []) : string
     {
         $indent = $options[ 'indent' ] ?? "  ";
-        $newline = $options[ 'newline' ] ?? "\n";
+        $newline = $options[ 'newline' ] ?? PHP_EOL;
         $withObjects = $options[ 'with_objects' ] ?? true;
 
         switch ( gettype($var) ) {
@@ -243,9 +250,9 @@ class Lib
                 break;
 
             case "array":
-                $isList = true;
 
                 $keys = array_keys($var);
+
                 foreach ( $keys as $key ) {
                     if (is_string($key)) {
                         $isList = false;
@@ -253,11 +260,12 @@ class Lib
                         break;
                     }
                 }
+                $isList = $isList ?? true;
 
                 $isListIndexed = $isList
                     && ($keys === range(0, count($var) - 1));
 
-                $r = [];
+                $lines = [];
                 foreach ( $var as $key => $value ) {
                     $line = $indent;
 
@@ -269,20 +277,23 @@ class Lib
                     // ! recursion
                     $line .= static::php_var_export($value, $options);
 
-                    $r[] = $line;
+                    $lines[] = $line;
                 }
 
-                $result = ""
-                    . "[" . $newline
-                    . implode("," . $newline, $r) . $newline
-                    . "{$indent}]";
+                $result = "["
+                    . $newline
+                    . implode("," . $newline, $lines) . $newline
+                    . $indent . "]";
 
                 break;
 
             case "object":
-                $result = $withObjects
-                    ? var_export($var, true)
-                    : static::php_var_dump($var);
+                if ($withObjects) {
+                    $result = var_export($var, true);
+
+                } else {
+                    $result = '{ object(' . get_class($var) . ' # ' . spl_object_id($var) . ') }';
+                }
 
                 break;
 
