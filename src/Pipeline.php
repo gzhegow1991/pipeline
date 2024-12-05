@@ -11,19 +11,19 @@ use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 class Pipeline
 {
     /**
-     * @var PipelineFactory
+     * @var PipelineFactoryInterface
      */
     protected $factory;
 
     /**
-     * @var PipelineProcessManager
+     * @var PipelineProcessManagerInterface
      */
     protected $processManager;
 
 
     public function __construct(
-        PipelineFactory $factory,
-        PipelineProcessManager $processManager
+        PipelineFactoryInterface $factory,
+        PipelineProcessManagerInterface $processManager
     )
     {
         $this->factory = $factory;
@@ -31,14 +31,14 @@ class Pipeline
     }
 
 
-    protected function doNew() : PipelineChain
+    public function doNew() : PipelineChain
     {
         $pipeline = $this->factory->newPipeline();
 
         return $pipeline;
     }
 
-    protected function doMiddleware($from) : MiddlewareChain
+    public function doMiddleware($from) : MiddlewareChain
     {
         $middleware = $this->factory->newMiddleware($from);
 
@@ -48,7 +48,7 @@ class Pipeline
     /**
      * @throws PipelineException
      */
-    protected function doRun($pipeline, $input = null, $context = null) // : mixed
+    public function doRun($pipeline, $input = null, $context = null) // : mixed
     {
         $result = $this->processManager->run(
             $pipeline,

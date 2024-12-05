@@ -5,6 +5,7 @@ namespace Gzhegow\Pipeline\Process;
 use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Step\Step;
 use Gzhegow\Pipeline\PipelineProcessManager;
+use Gzhegow\Pipeline\PipelineProcessManagerInterface;
 
 
 abstract class AbstractProcess implements PipelineProcessInterface
@@ -34,9 +35,11 @@ abstract class AbstractProcess implements PipelineProcessInterface
     protected $state;
 
 
-    public function __construct(PipelineProcessManager $pm)
+    public function __construct(
+        PipelineProcessManagerInterface $processManager
+    )
     {
-        $this->processManager = $pm;
+        $this->processManager = $processManager;
 
         $this->reset();
     }

@@ -6,6 +6,7 @@ use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Step\Step;
 use Gzhegow\Pipeline\Chain\MiddlewareChain;
 use Gzhegow\Pipeline\PipelineProcessManager;
+use Gzhegow\Pipeline\PipelineProcessManagerInterface;
 
 
 class MiddlewareProcess extends AbstractProcess
@@ -26,11 +27,14 @@ class MiddlewareProcess extends AbstractProcess
     protected $isNextCalled = false;
 
 
-    public function __construct(PipelineProcessManager $pm, MiddlewareChain $middleware)
+    public function __construct(
+        PipelineProcessManagerInterface $processManager,
+        MiddlewareChain $middleware
+    )
     {
         $this->middleware = $middleware;
 
-        parent::__construct($pm);
+        parent::__construct($processManager);
     }
 
 
