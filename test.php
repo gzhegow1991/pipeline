@@ -19,7 +19,7 @@ set_exception_handler(function (\Throwable $e) {
     do {
         echo "\n";
 
-        echo \Gzhegow\Router\Lib::php_var_dump($current) . PHP_EOL;
+        echo \Gzhegow\Pipeline\Lib::php_var_dump($current) . PHP_EOL;
         echo $current->getMessage() . PHP_EOL;
 
         foreach ( $e->getTrace() as $traceItem ) {
