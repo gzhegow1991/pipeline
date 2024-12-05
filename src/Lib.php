@@ -460,13 +460,13 @@ class Lib
         return $isDiff;
     }
 
-    public static function debug_line($value, ...$values) : string
+    public static function debug_line(array $options, $value, ...$values) : string
     {
         array_unshift($values, $value);
 
         $valueExports = [];
         foreach ( $values as $i => $v ) {
-            $line = static::debug_var_print($v, [ "with_objects" => false ]);
+            $line = static::debug_var_print($v, $options);
 
             $line = trim($line);
             $line = preg_replace('/\s+/', ' ', $line);
@@ -479,13 +479,13 @@ class Lib
         return $output;
     }
 
-    public static function debug_lines($value, ...$values) : string
+    public static function debug_text(array $options, $value, ...$values) : string
     {
         array_unshift($values, $value);
 
         $valueExports = [];
         foreach ( $values as $i => $v ) {
-            $line = static::debug_var_print($v, [ "with_objects" => false ]);
+            $line = static::debug_var_print($v, $options);
 
             $valueExports[ $i ] = $line;
         }
@@ -602,9 +602,6 @@ class Lib
     {
         $indent = $options[ 'indent' ] ?? "  ";
         $newline = $options[ 'newline' ] ?? PHP_EOL;
-        $withArrays = $options[ 'with_arrays' ] ?? true;
-        $withObjects = $options[ 'with_objects' ] ?? true;
-        $withIds = $options[ 'with_ids' ] ?? true;
 
         switch ( gettype($var) ) {
             case "NULL":
@@ -620,72 +617,39 @@ class Lib
                 break;
 
             case "array":
-                if (! $withArrays) {
-                    $result = 'array(' . count($var) . ')';
+                $keys = array_keys($var);
 
-                } else {
-                    $keys = array_keys($var);
+                foreach ( $keys as $key ) {
+                    if (is_string($key)) {
+                        $isList = false;
 
-                    foreach ( $keys as $key ) {
-                        if (is_string($key)) {
-                            $isList = false;
-
-                            break;
-                        }
+                        break;
                     }
-                    $isList = $isList ?? true;
+                }
+                $isList = $isList ?? true;
 
-                    $isListIndexed = $isList
-                        && ($keys === range(0, count($var) - 1));
+                $isListIndexed = $isList
+                    && ($keys === range(0, count($var) - 1));
 
-                    $lines = [];
-                    foreach ( $var as $key => $value ) {
-                        $line = $indent;
+                $lines = [];
+                foreach ( $var as $key => $value ) {
+                    $line = $indent;
 
-                        if (! $isListIndexed) {
-                            $line .= is_string($key) ? "\"{$key}\"" : $key;
-                            $line .= " => ";
-                        }
-
-                        // ! recursion
-                        $line .= static::debug_var_export($value, $options);
-
-                        $lines[] = $line;
+                    if (! $isListIndexed) {
+                        $line .= is_string($key) ? "\"{$key}\"" : $key;
+                        $line .= " => ";
                     }
 
-                    $result = "["
-                        . $newline
-                        . implode("," . $newline, $lines) . $newline
-                        . $indent . "]";
+                    // ! recursion
+                    $line .= static::debug_var_export($value, $options);
+
+                    $lines[] = $line;
                 }
 
-                break;
-
-            case "object":
-                if ($withObjects) {
-                    $result = var_export($var, true);
-
-                } else {
-                    $id = $withIds
-                        ? ' # ' . spl_object_id($var)
-                        : null;
-
-                    $result = '{ object(' . get_class($var) . $id . ') }';
-                }
-
-                break;
-
-            case "resource":
-                if ($withObjects) {
-                    $result = var_export($var, true);
-
-                } else {
-                    $id = $withIds
-                        ? ' # ' . spl_object_id($var)
-                        : null;
-
-                    $result = '{ resource(' . get_resource_type($var) . $id . ') }';
-                }
+                $result = "["
+                    . $newline
+                    . implode("," . $newline, $lines) . $newline
+                    . $indent . "]";
 
                 break;
 
@@ -703,6 +667,8 @@ class Lib
         $indent = $options[ 'indent' ] ?? "  ";
         $newline = $options[ 'newline' ] ?? PHP_EOL;
         $withArrays = $options[ 'with_arrays' ] ?? true;
+        $withIds = $options[ 'with_ids' ] ?? true;
+        $withObjects = $options[ 'with_objects' ] ?? true;
 
         switch ( gettype($var) ) {
             case "string":
@@ -747,6 +713,34 @@ class Lib
                         . $newline
                         . implode("," . $newline, $lines) . $newline
                         . $indent . "]";
+                }
+
+                break;
+
+            case "object":
+                if ($withObjects) {
+                    $result = var_export($var, true);
+
+                } else {
+                    $id = $withIds
+                        ? ' # ' . spl_object_id($var)
+                        : null;
+
+                    $result = '{ object(' . get_class($var) . $id . ') }';
+                }
+
+                break;
+
+            case "resource":
+                if ($withObjects) {
+                    $result = var_export($var, true);
+
+                } else {
+                    $id = $withIds
+                        ? ' # ' . spl_object_id($var)
+                        : null;
+
+                    $result = '{ resource(' . get_resource_type($var) . $id . ') }';
                 }
 
                 break;

@@ -36,12 +36,12 @@ set_exception_handler(function (\Throwable $e) {
 // > добавляем несколько функция для тестирования
 function _dump($value, ...$values) : void
 {
-    echo \Gzhegow\Pipeline\Lib::debug_line($value, ...$values);
+    echo \Gzhegow\Pipeline\Lib::debug_line([ 'with_ids' => false, 'with_objects' => false ], $value, ...$values);
 }
 
 function _dump_ln($value, ...$values) : void
 {
-    echo \Gzhegow\Pipeline\Lib::debug_line($value, ...$values) . PHP_EOL;
+    echo \Gzhegow\Pipeline\Lib::debug_line([ 'with_ids' => false, 'with_objects' => false ], $value, ...$values) . PHP_EOL;
 }
 
 function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutput = null) : void
