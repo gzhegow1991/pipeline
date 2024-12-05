@@ -105,7 +105,9 @@ abstract class GenericHandler implements \Serializable
     protected static function tryFromInstance($instance) : ?self
     {
         if (! is_a($instance, static::class)) {
-            return Lib::php_error([ 'The `from` should be instance of: ' . static::class, $instance ]);
+            return Lib::php_error(
+                [ 'The `from` should be instance of: ' . static::class, $instance ]
+            );
         }
 
         return $instance;
@@ -117,7 +119,9 @@ abstract class GenericHandler implements \Serializable
     protected static function tryFromClosure($closure) : ?self
     {
         if (! is_a($closure, \Closure::class)) {
-            return Lib::php_error([ 'The `from` should be instance of: ' . \Closure::class, $closure ]);
+            return Lib::php_error(
+                [ 'The `from` should be instance of: ' . \Closure::class, $closure ]
+            );
         }
 
         $instance = new static();
@@ -132,7 +136,9 @@ abstract class GenericHandler implements \Serializable
     protected static function tryFromMethod($method) : ?self
     {
         if (! Lib::php_method_exists($method, null, $methodArray)) {
-            return Lib::php_error([ 'The `from` should be existing method', $method ]);
+            return Lib::php_error(
+                [ 'The `from` should be existing method', $method ]
+            );
         }
 
         $instance = new static();
@@ -183,7 +189,9 @@ abstract class GenericHandler implements \Serializable
         }
 
         if (null === $instance) {
-            return Lib::php_error([ 'The `from` should be existing invokable class or object', $invokable ]);
+            return Lib::php_error(
+                [ 'The `from` should be existing invokable class or object', $invokable ]
+            );
         }
 
         return $instance;
@@ -194,10 +202,16 @@ abstract class GenericHandler implements \Serializable
      */
     protected static function tryFromFunction($function) : ?self
     {
-        $_function = Lib::parse_astring($function);
+        if (null === ($_function = Lib::parse_astring($function))) {
+            return Lib::php_error(
+                [ 'The `from` should be existing function name', $function ]
+            );
+        }
 
         if (! function_exists($_function)) {
-            return Lib::php_error([ 'The `from` should be existing function name', $function ]);
+            return Lib::php_error(
+                [ 'The `from` should be existing function name', $_function ]
+            );
         }
 
         $instance = new static();
