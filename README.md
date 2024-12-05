@@ -342,7 +342,7 @@ $fn = function () {
     catch ( \Gzhegow\Pipeline\Exception\Runtime\PipelineException $e ) {
         _dump('[ CATCH ]', get_class($e), $e->getMessage());
 
-        foreach ( $e->getPreviousStack() as $ee ) {
+        foreach ( $e->getPreviousList() as $ee ) {
             _dump('[ CATCH ]', get_class($ee), $ee->getMessage());
         }
     }
