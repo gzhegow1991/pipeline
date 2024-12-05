@@ -654,7 +654,7 @@ class Lib
                 continue;
             }
 
-            $lines[ $i ] = '[ ERROR ] "' . $aLine . '" != "' . $bLine . '"';
+            $lines[ $i ] = '[ ERROR ] ' . $aLine . ' | vs | ' . $bLine;
         }
 
         $output = implode(PHP_EOL, $lines);
