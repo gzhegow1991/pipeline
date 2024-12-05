@@ -560,7 +560,7 @@ class Lib
                     fwrite($stdout, '------' . PHP_EOL);
                     fwrite($stdout, '[ ERROR ] Test result check failed. ' . $microtime . 's' . PHP_EOL);
                     fwrite($stdout, $trace[ 0 ][ 'file' ] . ' / ' . $trace[ 0 ][ 'line' ] . PHP_EOL);
-                    fwrite($stdout, $diff);
+                    fwrite($stdout, $diff . PHP_EOL);
                     fwrite($stdout, '------' . PHP_EOL);
                 }
 
@@ -590,7 +590,7 @@ class Lib
                     fwrite($stdout, '------' . PHP_EOL);
                     fwrite($stdout, '[ ERROR ] Test output check failed. ' . $microtime . 's' . PHP_EOL);
                     fwrite($stdout, $trace[ 0 ][ 'file' ] . ' / ' . $trace[ 0 ][ 'line' ] . PHP_EOL);
-                    fwrite($stdout, $diff);
+                    fwrite($stdout, $diff . PHP_EOL);
                     fwrite($stdout, '------' . PHP_EOL);
                 }
 
@@ -619,7 +619,7 @@ class Lib
                     fwrite($stdout, '------' . PHP_EOL);
                     fwrite($stdout, '[ ERROR ] Test microtime check failed. ' . $microtime . 's' . PHP_EOL);
                     fwrite($stdout, $trace[ 0 ][ 'file' ] . ' / ' . $trace[ 0 ][ 'line' ] . PHP_EOL);
-                    fwrite($stdout, $diff);
+                    fwrite($stdout, $diff . PHP_EOL);
                     fwrite($stdout, '------' . PHP_EOL);
                 }
             }
