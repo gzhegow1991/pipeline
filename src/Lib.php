@@ -491,6 +491,215 @@ class Lib
     }
 
 
+    /**
+     * @return array{
+     *     0: array<int, mixed>,
+     *     1: array<string, mixed>
+     * }
+     */
+    public static function array_kwargs(array $src = null) : array
+    {
+        if (! isset($src)) return [];
+
+        $list = [];
+        $dict = [];
+
+        foreach ( $src as $idx => $val ) {
+            is_int($idx)
+                ? ($list[ $idx ] = $val)
+                : ($dict[ $idx ] = $val);
+        }
+
+        return [ $list, $dict ];
+    }
+
+
+    /**
+     * @param callable                                                          $fn
+     * @param object{ microtime?: float, output?: string, result?: mixed }|null $except
+     * @param array|null                                                        $error
+     * @param resource|null                                                     $stdout
+     */
+    public static function assert_call(
+        array $trace,
+        $fn, object $except = null, array &$error = null,
+        $stdout = null
+    ) : ?float
+    {
+        $error = null;
+
+        $microtime = microtime(true);
+
+        ob_start();
+        $result = $fn();
+        $output = ob_get_clean();
+
+        $output = trim($output);
+        $output = str_replace("\r\n", "\n", $output);
+        $output = preg_replace('/' . preg_quote('\\', '/') . '+/', '\\', $output);
+
+        if (property_exists($except, 'result')) {
+            if ($except->result !== $result) {
+                $microtime = round(microtime(true) - $microtime, 6);
+
+                $diff = static::debug_diff_var_dump($result, $except->result);
+
+                $error = [
+                    'Test result check failed',
+                    [
+                        'result'    => $result,
+                        'expect'    => $except->result,
+                        'diff'      => $diff,
+                        'microtime' => $microtime,
+                        'file'      => $trace[ 0 ][ 'file' ],
+                        'line'      => $trace[ 0 ][ 'line' ],
+                    ],
+                ];
+
+                if (null !== $stdout) {
+                    fwrite($stdout, '------' . PHP_EOL);
+                    fwrite($stdout, '[ ERROR ] Test result check failed. ' . $microtime . 's' . PHP_EOL);
+                    fwrite($stdout, $trace[ 0 ][ 'file' ] . ' / ' . $trace[ 0 ][ 'line' ] . PHP_EOL);
+                    fwrite($stdout, $diff);
+                    fwrite($stdout, '------' . PHP_EOL);
+                }
+
+                return false;
+            }
+        }
+
+        if (property_exists($except, 'output')) {
+            if (Lib::os_eol($except->output) !== Lib::os_eol($output)) {
+                $microtime = round(microtime(true) - $microtime, 6);
+
+                $diff = static::debug_diff($output, $except->output);
+
+                $error = [
+                    'Test result check failed',
+                    [
+                        'output'    => $output,
+                        'expect'    => $except->output,
+                        'diff'      => $diff,
+                        'microtime' => $microtime,
+                        'file'      => $trace[ 0 ][ 'file' ],
+                        'line'      => $trace[ 0 ][ 'line' ],
+                    ],
+                ];
+
+                if (null !== $stdout) {
+                    fwrite($stdout, '------' . PHP_EOL);
+                    fwrite($stdout, '[ ERROR ] Test output check failed. ' . $microtime . 's' . PHP_EOL);
+                    fwrite($stdout, $trace[ 0 ][ 'file' ] . ' / ' . $trace[ 0 ][ 'line' ] . PHP_EOL);
+                    fwrite($stdout, $diff);
+                    fwrite($stdout, '------' . PHP_EOL);
+                }
+
+                return false;
+            }
+        }
+
+        $microtime = round(microtime(true) - $microtime, 6);;
+
+        if (property_exists($except, 'microtime')) {
+            if ($except->microtime < $microtime) {
+                $diff = $microtime - $except->microtime;
+
+                $error = [
+                    'Test result check failed',
+                    [
+                        'microtime' => $microtime,
+                        'expect'    => $except->microtime,
+                        'diff'      => $diff,
+                        'file'      => $trace[ 0 ][ 'file' ],
+                        'line'      => $trace[ 0 ][ 'line' ],
+                    ],
+                ];
+
+                if (null !== $stdout) {
+                    fwrite($stdout, '------' . PHP_EOL);
+                    fwrite($stdout, '[ ERROR ] Test microtime check failed. ' . $microtime . 's' . PHP_EOL);
+                    fwrite($stdout, $trace[ 0 ][ 'file' ] . ' / ' . $trace[ 0 ][ 'line' ] . PHP_EOL);
+                    fwrite($stdout, $diff);
+                    fwrite($stdout, '------' . PHP_EOL);
+                }
+            }
+        }
+
+        if (null !== $stdout) {
+            fwrite($stdout, '------' . PHP_EOL);
+            fwrite($stdout, '[ OK ] Test success. ' . $microtime . 's' . PHP_EOL);
+            fwrite($stdout, '------' . PHP_EOL);
+        }
+
+        return $microtime;
+    }
+
+
+    public static function debug_diff(string $a, string $b) : string
+    {
+        static::os_eol($a, $aLines);
+        static::os_eol($b, $bLines);
+
+        $cnt = max(count($aLines), count($bLines));
+
+        $lines = [];
+
+        for ( $i = 0; $i < $cnt; $i++ ) {
+            if ($aLines[ $i ] === $bLines[ $i ]) {
+                $lines[ $i ] = $aLines[ $i ];
+
+                continue;
+            }
+
+            $lines[ $i ] = '[ ERROR ] "' . $aLines[ $i ] . '" != "' . $bLines[ $i ] . '"';
+        }
+
+        $output = implode(PHP_EOL, $lines);
+
+        return $output;
+    }
+
+    /**
+     * @param mixed $a
+     * @param mixed $b
+     */
+    public static function debug_diff_var_dump($a, $b) : string
+    {
+        ob_start();
+        var_dump($a);
+        $aString = ob_get_clean();
+
+        ob_start();
+        var_dump($b);
+        $bString = ob_get_clean();
+
+        $output = static::debug_diff($aString, $bString);
+
+        return $output;
+    }
+
+
+    /**
+     * @param string[]|null $lines
+     */
+    public static function os_eol(string $str, array &$lines = null) : string
+    {
+        $lines = null;
+
+        $array = explode("\n", $str);
+
+        foreach ( $array as $i => $line ) {
+            $array[ $i ] = rtrim($line, "\r");
+        }
+
+        $lines = $array;
+
+        $output = implode("\n", $array);
+
+        return $output;
+    }
+
+
     public static function parse_string($value) : ?string
     {
         if (is_string($value)) {
@@ -536,28 +745,5 @@ class Lib
         }
 
         return $_value;
-    }
-
-
-    /**
-     * @return array{
-     *     0: array<int, mixed>,
-     *     1: array<string, mixed>
-     * }
-     */
-    public static function array_kwargs(array $src = null) : array
-    {
-        if (! isset($src)) return [];
-
-        $list = [];
-        $dict = [];
-
-        foreach ( $src as $idx => $val ) {
-            is_int($idx)
-                ? ($list[ $idx ] = $val)
-                : ($dict[ $idx ] = $val);
-        }
-
-        return [ $list, $dict ];
     }
 }
