@@ -250,7 +250,7 @@ abstract class GenericHandler implements \Serializable
                 ?? $this->invokable
                 ?? $this->function;
 
-            $key = Lib::php_var_dump($key);
+            $key = Lib::debug_var_dump($key);
 
             $this->key = $key;
         }

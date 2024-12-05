@@ -19,7 +19,7 @@ set_exception_handler(function (\Throwable $e) {
     do {
         echo "\n";
 
-        echo \Gzhegow\Pipeline\Lib::php_var_dump($current) . PHP_EOL;
+        echo \Gzhegow\Pipeline\Lib::debug_var_dump($current) . PHP_EOL;
         echo $current->getMessage() . PHP_EOL;
 
         foreach ( $e->getTrace() as $traceItem ) {
@@ -36,7 +36,12 @@ set_exception_handler(function (\Throwable $e) {
 // > добавляем несколько функция для тестирования
 function _dump($value, ...$values) : void
 {
-    echo \Gzhegow\Pipeline\Lib::php_dump($value, ...$values) . PHP_EOL;
+    echo \Gzhegow\Pipeline\Lib::debug_line($value, ...$values);
+}
+
+function _dump_ln($value, ...$values) : void
+{
+    echo \Gzhegow\Pipeline\Lib::debug_line($value, ...$values) . PHP_EOL;
 }
 
 function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutput = null) : ?float
@@ -81,7 +86,7 @@ $facade = $factory->newFacade($processManager);
 // >>> TEST
 // > цепочка может состоять из одного или нескольких действий
 $fn = function () use ($factory, $processManager) {
-    _dump('[ TEST 1 ]');
+    _dump_ln('[ TEST 1 ]');
 
     // > создаем конвеер
     $pipeline = $factory->newPipeline();
@@ -110,14 +115,14 @@ $fn = function () use ($factory, $processManager) {
     // $result = $processManager->run($pipeline, $myInput, $myContext); // то же самое
     // $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext); // то же самое
 
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
 "[ TEST 1 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
-"[ RESULT ]" | "Gzhegow\\Pipeline\\Handler\\Demo\\Action\\Demo2ndAction::__invoke result."
+"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
 ""
 HEREDOC
 );
@@ -125,7 +130,7 @@ HEREDOC
 // >>> TEST
 // > действия могут передавать результат выполнения из одного в другое
 $fn = function () {
-    _dump('[ TEST 2 ]');
+    _dump_ln('[ TEST 2 ]');
 
     // > создаем конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::new();
@@ -141,7 +146,7 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -156,7 +161,7 @@ HEREDOC
 // >>> TEST
 // > выброшенную ошибку можно превратить в результат используя fallback
 $fn = function () {
-    _dump('[ TEST 3 ]');
+    _dump_ln('[ TEST 3 ]');
 
     // > создаем конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::new();
@@ -172,7 +177,7 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -187,7 +192,7 @@ HEREDOC
 // >>> TEST
 // > цепочка может начинаться с исключения, которое нужно обработать
 $fn = function () {
-    _dump('[ TEST 4 ]');
+    _dump_ln('[ TEST 4 ]');
 
     // > создаем конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::new();
@@ -203,7 +208,7 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -217,7 +222,7 @@ HEREDOC
 // >>> TEST
 // > если fallback возвращает NULL, то система попробует поймать исключение следующим fallback
 $fn = function () {
-    _dump('[ TEST 5 ]');
+    _dump_ln('[ TEST 5 ]');
 
     // > создаем конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::new();
@@ -234,7 +239,7 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -250,7 +255,7 @@ HEREDOC
 // >>> TEST
 // > если ни один из fallback не обработает ошибку, ошибка будет выброшена наружу
 $fn = function () {
-    _dump('[ TEST 6 ]');
+    _dump_ln('[ TEST 6 ]');
 
     // > создаем конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::new();
@@ -270,13 +275,13 @@ $fn = function () {
         $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     }
     catch ( \Gzhegow\Pipeline\Exception\Runtime\PipelineException $e ) {
-        _dump('[ CATCH ]', get_class($e), $e->getMessage());
+        _dump_ln('[ CATCH ]', get_class($e), $e->getMessage());
 
         foreach ( $e->getPreviousList() as $ee ) {
-            _dump('[ CATCH ]', get_class($ee), $ee->getMessage());
+            _dump_ln('[ CATCH ]', get_class($ee), $ee->getMessage());
         }
     }
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -295,7 +300,7 @@ HEREDOC
 // > + они как события, могут выполнить дополнительные действия или подготовить входные данные следуюших шагов
 // > если необходимо, чтобы middleware оборачивал только некоторые действия, то их следует обернуть в отдельный Pipeline
 $fn = function () use ($factory) {
-    _dump('[ TEST 7 ]');
+    _dump_ln('[ TEST 7 ]');
 
     // > создаем конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::new();
@@ -323,7 +328,7 @@ $fn = function () use ($factory) {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -341,7 +346,7 @@ HEREDOC
 // >>> TEST
 // > middleware может предотвратить выполнение цепочки (то есть уже написанный код можно отменить фильтром, не редактируя его)
 $fn = function () {
-    _dump('[ TEST 8 ]');
+    _dump_ln('[ TEST 8 ]');
 
     // > создаем конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::new();
@@ -363,7 +368,7 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -380,7 +385,7 @@ HEREDOC
 // >>> TEST
 // > цепочка может состоять даже из цепочек
 $fn = function () {
-    _dump('[ TEST 9 ]');
+    _dump_ln('[ TEST 9 ]');
 
     // > создаем дочерний конвеер
     $pipelineChild = \Gzhegow\Pipeline\Pipeline::new();
@@ -407,7 +412,7 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -425,7 +430,7 @@ HEREDOC
 // >>> TEST
 // > может состоять из middleware вложенных друг в друга
 $fn = function () {
-    _dump('[ TEST 10 ]');
+    _dump_ln('[ TEST 10 ]');
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::new()
@@ -442,7 +447,7 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -461,7 +466,7 @@ HEREDOC
 // >>> TEST
 // > что не отменяет возможности, что в одном из действий произойдет ошибка, которая должна быть поймана, а цепочка - продолжиться
 $fn = function () {
-    _dump('[ TEST 11 ]');
+    _dump_ln('[ TEST 11 ]');
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::new()
@@ -480,7 +485,7 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC
@@ -500,7 +505,7 @@ HEREDOC
 // > а вообще, даже из цепочек-в-цепочках может состоять
 // > вообще, этот конструктор нужен, чтобы ограничивать действие middleware только на несколько действий, а не на все
 $fn = function () {
-    _dump('[ TEST 12 ]');
+    _dump_ln('[ TEST 12 ]');
 
     // > добавляем действия в конвеер 2 уровня
     $middleware2nd = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
@@ -541,7 +546,7 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _dump_ln('[ RESULT ]', $result);
     _dump('');
 };
 _assert_call($fn, [], <<<HEREDOC

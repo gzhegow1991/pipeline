@@ -60,7 +60,7 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
 
         if (null === $process) {
             throw new LogicException(
-                'Unable to create process from: ' . Lib::php_dump($from)
+                'Unable to create process from: ' . Lib::debug_line($from)
             );
         }
 
@@ -192,7 +192,7 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
 
         if (null === $resultArray) {
             throw new RuntimeException(
-                'Unable to process pipe: ' . Lib::php_dump($pipe)
+                'Unable to process pipe: ' . Lib::debug_line($pipe)
             );
         }
 

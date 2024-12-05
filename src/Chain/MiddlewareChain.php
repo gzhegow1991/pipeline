@@ -25,7 +25,7 @@ class MiddlewareChain extends AbstractChain
             throw new LogicException(
                 [
                     'The `pipe` should be wrapper over: ' . GenericHandlerMiddleware::class
-                    . ' / Pipe: ' . Lib::php_dump($pipe),
+                    . ' / Pipe: ' . Lib::debug_line($pipe),
                     $pipe,
                 ]
             );

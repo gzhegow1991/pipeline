@@ -179,7 +179,7 @@ class PipelineProcessor implements PipelineProcessorInterface
             throw new RuntimeException(
                 [
                     'Unable to extract callable from handler.'
-                    . ' / Handler: ' . Lib::php_var_dump($handler),
+                    . ' / Handler: ' . Lib::debug_var_dump($handler),
                     $handler,
                 ]
             );
