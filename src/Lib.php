@@ -390,9 +390,7 @@ class Lib
         }
 
         if (null !== $stdout) {
-            fwrite($stdout, '------' . PHP_EOL);
             fwrite($stdout, '[ OK ] Test success. ' . $microtime . 's' . PHP_EOL);
-            fwrite($stdout, '------' . PHP_EOL);
         }
 
         return true;
@@ -426,12 +424,8 @@ class Lib
                 continue;
             }
 
-            $lines[] = '';
-            $lines[] = '[ ERROR ]';
-            $lines[] = '[ A ] ' . $aLine;
-            $lines[] = '[ B ] ' . $bLine;
-            $lines[] = '[ END ]';
-            $lines[] = '';
+            $lines[] = '--- ' . $aLine;
+            $lines[] = '+++ ' . $bLine;
 
             $isDiff = true;
         }
