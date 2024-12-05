@@ -462,7 +462,9 @@ class Lib
 
     public static function debug_dump($value, ...$values) : string
     {
-        return static::debug_line([ 'with_ids' => true, 'with_objects' => false ], $value, ...$values);
+        $output = static::debug_line([ 'with_ids' => true, 'with_objects' => false ], $value, ...$values);
+
+        return $output;
     }
 
     public static function debug_line(array $options, $value, ...$values) : string
