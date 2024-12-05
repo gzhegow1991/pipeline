@@ -306,7 +306,7 @@ class Lib
             if ($except->result !== $result) {
                 $microtime = round(microtime(true) - $microtime, 6);
 
-                static::debug_diff_var_dump($result, $except->result, $diff);
+                static::debug_diff_var_dump($except->result, $result, $diff);
 
                 $error = [
                     'Test result check failed',
@@ -333,7 +333,7 @@ class Lib
         }
 
         if (property_exists($except, 'output')) {
-            if (static::debug_diff($output, $except->output, $diff)) {
+            if (static::debug_diff($except->output, $output, $diff)) {
                 $microtime = round(microtime(true) - $microtime, 6);
 
                 $error = [
