@@ -460,6 +460,11 @@ class Lib
         return $isDiff;
     }
 
+    public static function debug_dump($value, ...$values) : string
+    {
+        return static::debug_line([ 'with_ids' => true, 'with_objects' => false ], $value, ...$values);
+    }
+
     public static function debug_line(array $options, $value, ...$values) : string
     {
         array_unshift($values, $value);
