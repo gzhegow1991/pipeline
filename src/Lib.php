@@ -645,13 +645,16 @@ class Lib
         $lines = [];
 
         for ( $i = 0; $i < $cnt; $i++ ) {
-            if ($aLines[ $i ] === $bLines[ $i ]) {
-                $lines[ $i ] = $aLines[ $i ];
+            $aLine = $aLines[ $i ] ?? '{ NULL }';
+            $bLine = $bLines[ $i ] ?? '{ NULL }';
+
+            if ($aLine === $bLine) {
+                $lines[ $i ] = $aLine;
 
                 continue;
             }
 
-            $lines[ $i ] = '[ ERROR ] "' . $aLines[ $i ] . '" != "' . $bLines[ $i ] . '"';
+            $lines[ $i ] = '[ ERROR ] "' . $aLine . '" != "' . $bLine . '"';
         }
 
         $output = implode(PHP_EOL, $lines);
