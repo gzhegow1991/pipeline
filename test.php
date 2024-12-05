@@ -44,7 +44,7 @@ function _dump_ln($value, ...$values) : void
     echo \Gzhegow\Pipeline\Lib::debug_line($value, ...$values) . PHP_EOL;
 }
 
-function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutput = null) : ?float
+function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutput = null) : void
 {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
@@ -58,7 +58,11 @@ function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutp
         $expect->output = $expectOutput;
     }
 
-    return \Gzhegow\Pipeline\Lib::assert_call($trace, $fn, $expect, $error, STDOUT);
+    $status = \Gzhegow\Pipeline\Lib::assert_call($trace, $fn, $expect, $error, STDOUT);
+
+    if (! $status) {
+        throw new \Gzhegow\Pipeline\Exception\LogicException();
+    }
 }
 
 

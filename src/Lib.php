@@ -292,7 +292,7 @@ class Lib
         array $trace,
         $fn, object $except = null, array &$error = null,
         $stdout = null
-    ) : ?float
+    ) : bool
     {
         $error = null;
 
@@ -384,6 +384,8 @@ class Lib
                     fwrite($stdout, $diff . PHP_EOL);
                     fwrite($stdout, '------' . PHP_EOL);
                 }
+
+                return false;
             }
         }
 
@@ -393,7 +395,7 @@ class Lib
             fwrite($stdout, '------' . PHP_EOL);
         }
 
-        return $microtime;
+        return true;
     }
 
 
