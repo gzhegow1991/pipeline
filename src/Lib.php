@@ -682,8 +682,8 @@ class Lib
                 } else {
                     $keys = array_keys($var);
 
-                    foreach ( $keys as $key ) {
-                        if (is_string($key)) {
+                    foreach ( $keys as $k ) {
+                        if (is_string($k)) {
                             $isList = false;
 
                             break;
@@ -695,16 +695,16 @@ class Lib
                         && ($keys === range(0, count($var) - 1));
 
                     $lines = [];
-                    foreach ( $var as $key => $value ) {
+                    foreach ( $var as $k => $v ) {
                         $line = $indent;
 
                         if (! $isListIndexed) {
-                            $line .= is_string($key) ? "\"{$key}\"" : $key;
+                            $line .= is_string($k) ? "\"{$k}\"" : $k;
                             $line .= " => ";
                         }
 
                         // ! recursion
-                        $line .= static::debug_var_export($value, [ 'with_arrays' => false ] + $options);
+                        $line .= static::debug_var_print($v, [ 'with_arrays' => false ] + $options);
 
                         $lines[] = $line;
                     }
