@@ -40,6 +40,89 @@ class Lib
     }
 
 
+    /**
+     * @return object{ errors: array }
+     */
+    public static function php_errors() : object
+    {
+        static $stack;
+
+        $stack = $stack
+            ?? new class {
+                public $errors = [];
+            };
+
+        return $stack;
+    }
+
+    /**
+     * @return object{ list: array }
+     */
+    public static function php_errors_current() : object
+    {
+        $stack = static::php_errors();
+
+        $errors = end($stack->errors);
+
+        return $errors;
+    }
+
+    /**
+     * @return object{ list: array }
+     */
+    public static function php_errors_new() : object
+    {
+        $errors = new class {
+            public $list = [];
+        };
+
+        return $errors;
+    }
+
+    /**
+     * @return object{ list: array }
+     */
+    public static function php_errors_start(object &$errors = null) : object
+    {
+        $stack = static::php_errors();
+
+        $errors = static::php_errors_new();
+        $stack->errors[] = $errors;
+
+        return $errors;
+    }
+
+    public static function php_errors_end(?object $until) : array
+    {
+        $stack = static::php_errors();
+
+        $errors = static::php_errors_new();
+
+        while ( count($stack->errors) ) {
+            $current = array_pop($stack->errors);
+
+            foreach ( $current->list as $error ) {
+                $errors->list[] = $error;
+            }
+
+            if ($current === $until) {
+                break;
+            }
+        }
+
+        return $errors->list;
+    }
+
+    public static function php_error($error, $result = null) // : mixed
+    {
+        $current = static::php_errors_current();
+
+        $current->list[] = $error;
+
+        return $result;
+    }
+
+
     public static function php_throwable_args(...$args) : array
     {
         $len = count($args);
@@ -333,89 +416,6 @@ class Lib
 
                 break;
         }
-
-        return $result;
-    }
-
-
-    /**
-     * @return object{ errors: array }
-     */
-    public static function php_errors() : object
-    {
-        static $stack;
-
-        $stack = $stack
-            ?? new class {
-                public $errors = [];
-            };
-
-        return $stack;
-    }
-
-    /**
-     * @return object{ list: array }
-     */
-    public static function php_errors_current() : object
-    {
-        $stack = static::php_errors();
-
-        $errors = end($stack->errors);
-
-        return $errors;
-    }
-
-    /**
-     * @return object{ list: array }
-     */
-    public static function php_errors_new() : object
-    {
-        $errors = new class {
-            public $list = [];
-        };
-
-        return $errors;
-    }
-
-    /**
-     * @return object{ list: array }
-     */
-    public static function php_errors_start(object &$errors = null) : object
-    {
-        $stack = static::php_errors();
-
-        $errors = static::php_errors_new();
-        $stack->errors[] = $errors;
-
-        return $errors;
-    }
-
-    public static function php_errors_end(?object $until) : array
-    {
-        $stack = static::php_errors();
-
-        $errors = static::php_errors_new();
-
-        while ( count($stack->errors) ) {
-            $current = array_pop($stack->errors);
-
-            foreach ( $current->list as $error ) {
-                $errors->list[] = $error;
-            }
-
-            if ($current === $until) {
-                break;
-            }
-        }
-
-        return $errors->list;
-    }
-
-    public static function php_error($error, $result = null) // : mixed
-    {
-        $current = static::php_errors_current();
-
-        $current->list[] = $error;
 
         return $result;
     }
