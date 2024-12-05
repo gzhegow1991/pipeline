@@ -2,8 +2,6 @@
 
 namespace Gzhegow\Pipeline\Exception;
 
-use Gzhegow\Pipeline\Lib;
-
 
 class Exception extends \Exception
     implements ExceptionInterface
@@ -34,7 +32,7 @@ class Exception extends \Exception
 
     public function __construct(...$errors)
     {
-        foreach ( Lib::php_throwable_args(...$errors) as $k => $v ) {
+        foreach ( \Gzhegow\Pipeline\Lib::php_throwable_args(...$errors) as $k => $v ) {
             if (property_exists($this, $k)) {
                 $this->{$k} = $v;
             }
