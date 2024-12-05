@@ -123,6 +123,76 @@ class Lib
     }
 
 
+    /**
+     * @param callable|array|object|class-string     $mixed
+     *
+     * @param array{0: class-string, 1: string}|null $resultArray
+     * @param callable|string|null                   $resultString
+     *
+     * @return array{0: class-string|object, 1: string}|null
+     */
+    public static function php_method_exists(
+        $mixed, $method = null,
+        array &$resultArray = null, string &$resultString = null
+    ) : ?array
+    {
+        $resultArray = null;
+        $resultString = null;
+
+        $method = $method ?? '';
+
+        $_class = null;
+        $_object = null;
+        $_method = null;
+        if (is_object($mixed)) {
+            $_object = $mixed;
+
+        } elseif (is_array($mixed)) {
+            $list = array_values($mixed);
+
+            [ $classOrObject, $_method ] = $list + [ '', '' ];
+
+            is_object($classOrObject)
+                ? ($_object = $classOrObject)
+                : ($_class = $classOrObject);
+
+        } elseif (is_string($mixed)) {
+            [ $_class, $_method ] = explode('::', $mixed) + [ '', '' ];
+
+            $_method = $_method ?? $method;
+        }
+
+        if (isset($_method) && ! is_string($_method)) {
+            return null;
+        }
+
+        if ($_object) {
+            if ($_object instanceof \Closure) {
+                return null;
+            }
+
+            if (method_exists($_object, $_method)) {
+                $class = get_class($_object);
+
+                $resultArray = [ $class, $_method ];
+                $resultString = $class . '::' . $_method;
+
+                return [ $_object, $_method ];
+            }
+
+        } elseif ($_class) {
+            if (method_exists($_class, $_method)) {
+                $resultArray = [ $_class, $_method ];
+                $resultString = $_class . '::' . $_method;
+
+                return [ $_class, $_method ];
+            }
+        }
+
+        return null;
+    }
+
+
     public static function php_throwable_args(...$args) : array
     {
         $len = count($args);
@@ -418,76 +488,6 @@ class Lib
         }
 
         return $result;
-    }
-
-
-    /**
-     * @param callable|array|object|class-string     $mixed
-     *
-     * @param array{0: class-string, 1: string}|null $resultArray
-     * @param callable|string|null                   $resultString
-     *
-     * @return array{0: class-string|object, 1: string}|null
-     */
-    public static function php_method_exists(
-        $mixed, $method = null,
-        array &$resultArray = null, string &$resultString = null
-    ) : ?array
-    {
-        $resultArray = null;
-        $resultString = null;
-
-        $method = $method ?? '';
-
-        $_class = null;
-        $_object = null;
-        $_method = null;
-        if (is_object($mixed)) {
-            $_object = $mixed;
-
-        } elseif (is_array($mixed)) {
-            $list = array_values($mixed);
-
-            [ $classOrObject, $_method ] = $list + [ '', '' ];
-
-            is_object($classOrObject)
-                ? ($_object = $classOrObject)
-                : ($_class = $classOrObject);
-
-        } elseif (is_string($mixed)) {
-            [ $_class, $_method ] = explode('::', $mixed) + [ '', '' ];
-
-            $_method = $_method ?? $method;
-        }
-
-        if (isset($_method) && ! is_string($_method)) {
-            return null;
-        }
-
-        if ($_object) {
-            if ($_object instanceof \Closure) {
-                return null;
-            }
-
-            if (method_exists($_object, $_method)) {
-                $class = get_class($_object);
-
-                $resultArray = [ $class, $_method ];
-                $resultString = $class . '::' . $_method;
-
-                return [ $_object, $_method ];
-            }
-
-        } elseif ($_class) {
-            if (method_exists($_class, $_method)) {
-                $resultArray = [ $_class, $_method ];
-                $resultString = $_class . '::' . $_method;
-
-                return [ $_class, $_method ];
-            }
-        }
-
-        return null;
     }
 
 
