@@ -10,9 +10,9 @@ interface PipelineFactoryInterface
 {
     public function newProcessor() : PipelineProcessorInterface;
 
-    public function newProcessManager(PipelineProcessorInterface $processor = null) : PipelineProcessManagerInterface;
+    public function newProcessManager() : PipelineProcessManagerInterface;
 
-    public function newFacade(PipelineProcessManagerInterface $processManager = null) : Pipeline;
+    public function newFacade() : PipelineFacadeInterface;
 
 
     public function newPipeline() : PipelineChain;

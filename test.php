@@ -71,25 +71,15 @@ function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutp
 // > сначала всегда фабрика
 $factory = new \Gzhegow\Pipeline\PipelineFactory();
 
-// > создаем процессор, который будет запускать методы шагов конвеера
-// > его можно наследовать, соединив с инжектором зависимостей
-$processor = $factory->newProcessor();
-
-// > создаем менеджер процессов, который будет запускать конвееры и шаги конвеера
-// > его можно наследовать, соединив с диспетчером процессов при параллельности
-$processManager = $factory->newProcessManager($processor);
-
-// > создаем фасад (не обязательно)
-// > его задача будет помнить и предоставлять посредников $factory/$processor к конкретному $pipeline (он используется в вызове $pipeline->run())
-$facade = $factory->newFacade($processManager);
-
-// > сохраняем фасад глобально, чтобы работали статические методы
-\Gzhegow\Pipeline\Pipeline::setInstance($facade);
+// > создаем фасад и сохраняем его глобально (не обязательно)
+// > это предоставит вызов без привязки к экземпляру объекта во всей программе
+$facade = $factory->newFacade();
+\Gzhegow\Pipeline\Pipeline::setFacade($facade);
 
 
 // >>> TEST
 // > цепочка может состоять из одного или нескольких действий
-$fn = function () use ($factory, $processManager) {
+$fn = function () use ($factory) {
     _dump_ln('[ TEST 1 ]');
 
     // > создаем конвеер
@@ -112,6 +102,7 @@ $fn = function () use ($factory, $processManager) {
     $myContext = (object) [];
 
     // > устанавливаем менеджер процессов для цепочки
+    $processManager = $factory->newProcessManager();
     $pipeline->setProcessManager($processManager);
 
     // > запускаем конвеер из самой цепочки

@@ -17,11 +17,9 @@ class PipelineFactory implements PipelineFactoryInterface
         return $processor;
     }
 
-    public function newProcessManager(
-        PipelineProcessorInterface $processor = null
-    ) : PipelineProcessManagerInterface
+    public function newProcessManager() : PipelineProcessManagerInterface
     {
-        $processor = $processor ?? $this->newProcessor();
+        $processor = $this->newProcessor();
 
         $processManager = new PipelineProcessManager(
             $this,
@@ -31,11 +29,11 @@ class PipelineFactory implements PipelineFactoryInterface
         return $processManager;
     }
 
-    public function newFacade(PipelineProcessManagerInterface $processManager = null) : Pipeline
+    public function newFacade() : PipelineFacadeInterface
     {
-        $processManager = $processManager ?? $this->newProcessManager();
+        $processManager = $this->newProcessManager();
 
-        $facade = new Pipeline(
+        $facade = new PipelineFacade(
             $this,
             $processManager
         );
@@ -53,9 +51,9 @@ class PipelineFactory implements PipelineFactoryInterface
 
     public function newMiddleware($from) : MiddlewareChain
     {
-        $generic = GenericHandlerMiddleware::from($from);
+        $genericMiddleware = GenericHandlerMiddleware::from($from);
 
-        $pipe = Pipe::from($generic);
+        $pipe = Pipe::from($genericMiddleware);
 
         $middleware = new MiddlewareChain($this, $pipe);
 
