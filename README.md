@@ -94,15 +94,26 @@ function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutp
 // > сначала всегда фабрика
 $factory = new \Gzhegow\Pipeline\PipelineFactory();
 
+// > создаем процессор
+// > его задача выполнять конечные функции, предоставляя зависимости для их вызова (например, при использовании контейнера DI)
+$processor = $factory->newProcessor();
+
+// > создаем менеджер процессов
+// > его задача выполнять шаги процессов, созданных на основе цепочек, и передавать управление процессору
+$processManager = $factory->newProcessManager($processor);
+
 // > создаем фасад и сохраняем его глобально (не обязательно)
-// > это предоставит вызов без привязки к экземпляру объекта во всей программе
-$facade = $factory->newFacade();
+// > его задача - предоставить общий интерфейс для управления конвеерами во всей программе
+$facade = $factory->newFacade($processManager);
+
+// > сохраняем фасад статически, позволяя вызывать его напрямую без внедрения зависимостей
+// > но правильный путь - это всё-таки передавать фасад зависимостью, позволяя его подменить, а не фиксируя статику в коде
 \Gzhegow\Pipeline\Pipeline::setFacade($facade);
 
 
 // >>> TEST
 // > цепочка может состоять из одного или нескольких действий
-$fn = function () use ($factory) {
+$fn = function () use ($factory, $processManager) {
     _dump_ln('[ TEST 1 ]');
 
     // > создаем конвеер
@@ -124,12 +135,11 @@ $fn = function () use ($factory) {
     // > разумно передать сюда объект, чтобы он был общим для всех шагов и складывать сюда отчеты или промежуточные данные
     $myContext = (object) [];
 
-    // > устанавливаем менеджер процессов для цепочки
-    $processManager = $factory->newProcessManager();
+    // > устанавливаем менеджер процессов для цепочки + запускаем конвеер из самой цепочки
     $pipeline->setProcessManager($processManager);
-
-    // > запускаем конвеер из самой цепочки
     $result = $pipeline->run($myInput, $myContext);
+
+    // > либо иным способом
     // $result = $processManager->run($pipeline, $myInput, $myContext); // то же самое
     // $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext); // то же самое
 
