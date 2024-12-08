@@ -2,6 +2,8 @@
 
 namespace Gzhegow\Pipeline\Exception;
 
+use Gzhegow\Pipeline\Lib\Lib;
+
 
 class LogicException extends \LogicException
     implements ExceptionInterface
@@ -32,7 +34,7 @@ class LogicException extends \LogicException
 
     public function __construct(...$errors)
     {
-        foreach ( \Gzhegow\Pipeline\Lib\Lib::php_throwable_args(...$errors) as $k => $v ) {
+        foreach ( Lib::php_throwable_args(...$errors) as $k => $v ) {
             if (property_exists($this, $k)) {
                 $this->{$k} = $v;
             }
