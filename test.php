@@ -1,6 +1,5 @@
 <?php
 
-// require_once getenv('COMPOSER_HOME') . '/vendor/autoload.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
 
@@ -16,6 +15,7 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline) {
     }
 });
 set_exception_handler(function (\Throwable $e) {
+    // require_once getenv('COMPOSER_HOME') . '/vendor/autoload.php';
     // dd($e);
 
     $current = $e;
