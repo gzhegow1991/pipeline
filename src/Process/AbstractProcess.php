@@ -5,11 +5,17 @@ namespace Gzhegow\Pipeline\Process;
 use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Step\Step;
 use Gzhegow\Pipeline\PipelineProcessManager;
+use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\PipelineProcessManagerInterface;
 
 
 abstract class AbstractProcess implements PipelineProcessInterface
 {
+    /**
+     * @var PipelineFactoryInterface
+     */
+    protected $factory;
+
     /**
      * @var PipelineProcessManager
      */
@@ -36,9 +42,13 @@ abstract class AbstractProcess implements PipelineProcessInterface
 
 
     public function __construct(
+        PipelineFactoryInterface $factory,
+        //
         PipelineProcessManagerInterface $processManager
     )
     {
+        $this->factory = $factory;
+
         $this->processManager = $processManager;
 
         $this->reset();
@@ -99,7 +109,10 @@ abstract class AbstractProcess implements PipelineProcessInterface
         next($this->pipes);
 
         if ($pipe->middleware) {
-            $nestedProcess = $this->processManager->newMiddlewareProcess($pipe->middleware);
+            $nestedProcess = $this->factory->newMiddlewareProcess(
+                $this->processManager,
+                $pipe->middleware
+            );
 
             $this->currentNestedProcess = $nestedProcess;
 
@@ -109,7 +122,10 @@ abstract class AbstractProcess implements PipelineProcessInterface
         }
 
         if ($pipe->pipeline) {
-            $nestedProcess = $this->processManager->newPipelineProcess($pipe->pipeline);
+            $nestedProcess = $this->factory->newPipelineProcess(
+                $this->processManager,
+                $pipe->pipeline
+            );
 
             $this->currentNestedProcess = $nestedProcess;
 

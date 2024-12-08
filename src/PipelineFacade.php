@@ -22,10 +22,12 @@ class PipelineFacade implements PipelineFacadeInterface
 
     public function __construct(
         PipelineFactoryInterface $factory,
+        //
         PipelineProcessManagerInterface $processManager
     )
     {
         $this->factory = $factory;
+
         $this->processManager = $processManager;
     }
 

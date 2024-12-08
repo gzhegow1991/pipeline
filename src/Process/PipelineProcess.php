@@ -3,6 +3,7 @@
 namespace Gzhegow\Pipeline\Process;
 
 use Gzhegow\Pipeline\Chain\PipelineChain;
+use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\PipelineProcessManagerInterface;
 
 
@@ -15,13 +16,15 @@ class PipelineProcess extends AbstractProcess
 
 
     public function __construct(
+        PipelineFactoryInterface $factory,
         PipelineProcessManagerInterface $processManager,
+        //
         PipelineChain $pipeline
     )
     {
         $this->pipeline = $pipeline;
 
-        parent::__construct($processManager);
+        parent::__construct($factory, $processManager);
     }
 
 

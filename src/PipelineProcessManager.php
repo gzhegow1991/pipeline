@@ -4,11 +4,6 @@ namespace Gzhegow\Pipeline;
 
 use Gzhegow\Pipeline\Step\Step;
 use Gzhegow\Pipeline\Pipe\Pipe;
-use Gzhegow\Pipeline\Chain\PipelineChain;
-use Gzhegow\Pipeline\Chain\MiddlewareChain;
-use Gzhegow\Pipeline\Process\PipelineProcess;
-use Gzhegow\Pipeline\Exception\LogicException;
-use Gzhegow\Pipeline\Process\MiddlewareProcess;
 use Gzhegow\Pipeline\Exception\RuntimeException;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
@@ -20,6 +15,7 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
      * @var PipelineFactoryInterface
      */
     protected $factory;
+
     /**
      * @var PipelineProcessorInterface
      */
@@ -28,80 +24,13 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
 
     public function __construct(
         PipelineFactoryInterface $factory,
+        //
         PipelineProcessorInterface $processor
     )
     {
         $this->factory = $factory;
+
         $this->processor = $processor;
-    }
-
-
-    public function newMiddlewareProcess(MiddlewareChain $middleware) : ?MiddlewareProcess
-    {
-        $process = new MiddlewareProcess($this, $middleware);
-
-        return $process;
-    }
-
-    public function newPipelineProcess(PipelineChain $pipeline) : ?PipelineProcess
-    {
-        $process = new PipelineProcess($this, $pipeline);
-
-        return $process;
-    }
-
-
-    public function newProcessFrom($from) : ?PipelineProcessInterface
-    {
-        $process = null
-            ?? $this->newProcessFromInstance($from)
-            ?? $this->newProcessFromPipeline($from)
-            ?? $this->newProcessFromMiddleware($from);
-
-        if (null === $process) {
-            throw new LogicException(
-                [
-                    'Unable to create process from',
-                    $from,
-                ]
-            );
-        }
-
-        return $process;
-    }
-
-    protected function newProcessFromInstance($from) : ?PipelineProcessInterface
-    {
-        if (! ($from instanceof PipelineProcessInterface)) {
-            return null;
-        }
-
-        $process = clone $from;
-        $process->reset();
-
-        return $process;
-    }
-
-    protected function newProcessFromMiddleware($from) : ?MiddlewareProcess
-    {
-        if (! ($from instanceof MiddlewareChain)) {
-            return null;
-        }
-
-        $process = $this->newMiddlewareProcess($from);
-
-        return $process;
-    }
-
-    protected function newProcessFromPipeline($pipeline) : ?PipelineProcess
-    {
-        if (! ($pipeline instanceof PipelineChain)) {
-            return null;
-        }
-
-        $process = $this->newPipelineProcess($pipeline);
-
-        return $process;
     }
 
 
@@ -109,7 +38,10 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
     {
         $result = null;
 
-        $process = $this->newProcessFrom($pipeline);
+        $process = $this->factory->newProcessFrom(
+            $this,
+            $pipeline
+        );
 
         $resultArray = $this->doRun($process, $input, $context);
 
