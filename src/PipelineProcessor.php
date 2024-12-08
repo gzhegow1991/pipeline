@@ -2,6 +2,7 @@
 
 namespace Gzhegow\Pipeline;
 
+use Gzhegow\Pipeline\Lib\Lib;
 use Gzhegow\Pipeline\Handler\GenericHandler;
 use Gzhegow\Pipeline\Exception\RuntimeException;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;

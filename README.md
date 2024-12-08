@@ -20,6 +20,7 @@ composer require gzhegow/pipeline;
 ```php
 <?php
 
+// require_once getenv('COMPOSER_HOME') . '/vendor/autoload.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
 
@@ -35,11 +36,13 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline) {
     }
 });
 set_exception_handler(function (\Throwable $e) {
+    // dd($e);
+
     $current = $e;
     do {
         echo "\n";
 
-        echo \Gzhegow\Pipeline\Lib::debug_var_dump($current) . PHP_EOL;
+        echo \Gzhegow\Pipeline\Lib\Lib::debug_var_dump($current) . PHP_EOL;
         echo $current->getMessage() . PHP_EOL;
 
         foreach ( $e->getTrace() as $traceItem ) {
@@ -54,17 +57,17 @@ set_exception_handler(function (\Throwable $e) {
 
 
 // > добавляем несколько функция для тестирования
-function _dump($value, ...$values) : void
+function _dump(...$values) : void
 {
-    echo \Gzhegow\Pipeline\Lib::debug_line($value, ...$values);
+    echo implode(' | ', array_map([ \Gzhegow\Pipeline\Lib\Lib::class, 'debug_value' ], $values));
 }
 
-function _dump_ln($value, ...$values) : void
+function _dump_ln(...$values) : void
 {
-    echo \Gzhegow\Pipeline\Lib::debug_line($value, ...$values) . PHP_EOL;
+    echo implode(' | ', array_map([ \Gzhegow\Pipeline\Lib\Lib::class, 'debug_value' ], $values)) . PHP_EOL;
 }
 
-function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutput = null) : ?float
+function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutput = null) : void
 {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
@@ -78,7 +81,11 @@ function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutp
         $expect->output = $expectOutput;
     }
 
-    return \Gzhegow\Pipeline\Lib::assert_call($trace, $fn, $expect, $error, STDOUT);
+    $status = \Gzhegow\Pipeline\Lib\Lib::assert_call($trace, $fn, $expect, $error, STDOUT);
+
+    if (! $status) {
+        throw new \Gzhegow\Pipeline\Exception\LogicException();
+    }
 }
 
 
@@ -87,25 +94,15 @@ function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutp
 // > сначала всегда фабрика
 $factory = new \Gzhegow\Pipeline\PipelineFactory();
 
-// > создаем процессор, который будет запускать методы шагов конвеера
-// > его можно наследовать, соединив с инжектором зависимостей
-$processor = $factory->newProcessor();
-
-// > создаем менеджер процессов, который будет запускать конвееры и шаги конвеера
-// > его можно наследовать, соединив с диспетчером процессов при параллельности
-$processManager = $factory->newProcessManager($processor);
-
-// > создаем фасад (не обязательно)
-// > его задача будет помнить и предоставлять посредников $factory/$processor к конкретному $pipeline (он используется в вызове $pipeline->run())
-$facade = $factory->newFacade($processManager);
-
-// > сохраняем фасад глобально, чтобы работали статические методы
-\Gzhegow\Pipeline\Pipeline::setInstance($facade);
+// > создаем фасад и сохраняем его глобально (не обязательно)
+// > это предоставит вызов без привязки к экземпляру объекта во всей программе
+$facade = $factory->newFacade();
+\Gzhegow\Pipeline\Pipeline::setFacade($facade);
 
 
 // >>> TEST
 // > цепочка может состоять из одного или нескольких действий
-$fn = function () use ($factory, $processManager) {
+$fn = function () use ($factory) {
     _dump_ln('[ TEST 1 ]');
 
     // > создаем конвеер
@@ -128,6 +125,7 @@ $fn = function () use ($factory, $processManager) {
     $myContext = (object) [];
 
     // > устанавливаем менеджер процессов для цепочки
+    $processManager = $factory->newProcessManager();
     $pipeline->setProcessManager($processManager);
 
     // > запускаем конвеер из самой цепочки
@@ -309,7 +307,7 @@ _assert_call($fn, [], <<<HEREDOC
 Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Runtime\PipelineException" | "Unhandled exception occured during processing pipeline"
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception" | "Hello, World!"
-"[ RESULT ]" | NULL
+"[ RESULT ]" | { NULL }
 ""
 HEREDOC
 );

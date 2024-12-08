@@ -1,5 +1,6 @@
 <?php
 
+// require_once getenv('COMPOSER_HOME') . '/vendor/autoload.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
 
@@ -15,11 +16,13 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline) {
     }
 });
 set_exception_handler(function (\Throwable $e) {
+    // dd($e);
+
     $current = $e;
     do {
         echo "\n";
 
-        echo \Gzhegow\Pipeline\Lib::debug_var_dump($current) . PHP_EOL;
+        echo \Gzhegow\Pipeline\Lib\Lib::debug_var_dump($current) . PHP_EOL;
         echo $current->getMessage() . PHP_EOL;
 
         foreach ( $e->getTrace() as $traceItem ) {
@@ -34,14 +37,14 @@ set_exception_handler(function (\Throwable $e) {
 
 
 // > добавляем несколько функция для тестирования
-function _dump($value, ...$values) : void
+function _dump(...$values) : void
 {
-    echo \Gzhegow\Pipeline\Lib::debug_line([ 'with_ids' => false, 'with_objects' => false ], $value, ...$values);
+    echo implode(' | ', array_map([ \Gzhegow\Pipeline\Lib\Lib::class, 'debug_value' ], $values));
 }
 
-function _dump_ln($value, ...$values) : void
+function _dump_ln(...$values) : void
 {
-    echo \Gzhegow\Pipeline\Lib::debug_line([ 'with_ids' => false, 'with_objects' => false ], $value, ...$values) . PHP_EOL;
+    echo implode(' | ', array_map([ \Gzhegow\Pipeline\Lib\Lib::class, 'debug_value' ], $values)) . PHP_EOL;
 }
 
 function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutput = null) : void
@@ -58,7 +61,7 @@ function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutp
         $expect->output = $expectOutput;
     }
 
-    $status = \Gzhegow\Pipeline\Lib::assert_call($trace, $fn, $expect, $error, STDOUT);
+    $status = \Gzhegow\Pipeline\Lib\Lib::assert_call($trace, $fn, $expect, $error, STDOUT);
 
     if (! $status) {
         throw new \Gzhegow\Pipeline\Exception\LogicException();
@@ -284,7 +287,7 @@ _assert_call($fn, [], <<<HEREDOC
 Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Runtime\PipelineException" | "Unhandled exception occured during processing pipeline"
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception" | "Hello, World!"
-"[ RESULT ]" | NULL
+"[ RESULT ]" | { NULL }
 ""
 HEREDOC
 );

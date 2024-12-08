@@ -2,6 +2,7 @@
 
 namespace Gzhegow\Pipeline;
 
+use Gzhegow\Pipeline\Lib\Lib;
 use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;

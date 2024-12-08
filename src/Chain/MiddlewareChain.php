@@ -2,7 +2,6 @@
 
 namespace Gzhegow\Pipeline\Chain;
 
-use Gzhegow\Pipeline\Lib;
 use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Exception\LogicException;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
@@ -24,8 +23,7 @@ class MiddlewareChain extends AbstractChain
         if (null === $pipe->handlerMiddleware) {
             throw new LogicException(
                 [
-                    'The `pipe` should be wrapper over: ' . GenericHandlerMiddleware::class
-                    . ' / Pipe: ' . Lib::debug_dump($pipe),
+                    'The `pipe` should be wrapper over: ' . GenericHandlerMiddleware::class,
                     $pipe,
                 ]
             );

@@ -32,7 +32,7 @@ class Exception extends \Exception
 
     public function __construct(...$errors)
     {
-        foreach ( \Gzhegow\Pipeline\Lib::php_throwable_args(...$errors) as $k => $v ) {
+        foreach ( \Gzhegow\Pipeline\Lib\Lib::php_throwable_args(...$errors) as $k => $v ) {
             if (property_exists($this, $k)) {
                 $this->{$k} = $v;
             }
