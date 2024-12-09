@@ -2,7 +2,7 @@
 
 namespace Gzhegow\Pipeline;
 
-use Gzhegow\Pipeline\Lib\Lib;
+use Gzhegow\Lib\Lib;
 use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Process\PipelineProcess;
 use Gzhegow\Pipeline\Exception\LogicException;

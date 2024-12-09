@@ -2,7 +2,7 @@
 
 namespace Gzhegow\Pipeline\Handler;
 
-use Gzhegow\Pipeline\Lib\Lib;
+use Gzhegow\Lib\Lib;
 use Gzhegow\Pipeline\Exception\LogicException;
 
 
@@ -174,7 +174,7 @@ abstract class GenericHandler implements \Serializable
             $instance->invokable = $invokable;
             $instance->invokableObject = $invokable;
 
-        } elseif (null !== ($_invokableClass = Lib::parse_astring($invokable))) {
+        } elseif (null !== ($_invokableClass = Lib::parse_string_not_empty($invokable))) {
             if (! class_exists($_invokableClass)) {
                 return null;
             }
@@ -202,7 +202,7 @@ abstract class GenericHandler implements \Serializable
      */
     protected static function tryFromFunction($function) : ?self
     {
-        if (null === ($_function = Lib::parse_astring($function))) {
+        if (null === ($_function = Lib::parse_string_not_empty($function))) {
             return Lib::php_error(
                 [ 'The `from` should be existing function name', $function ]
             );

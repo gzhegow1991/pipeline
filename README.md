@@ -42,7 +42,7 @@ set_exception_handler(function (\Throwable $e) {
     do {
         echo "\n";
 
-        echo \Gzhegow\Pipeline\Lib\Lib::debug_var_dump($current) . PHP_EOL;
+        echo \Gzhegow\Lib\Lib::debug_var_dump($current) . PHP_EOL;
         echo $current->getMessage() . PHP_EOL;
 
         foreach ( $e->getTrace() as $traceItem ) {
@@ -59,12 +59,12 @@ set_exception_handler(function (\Throwable $e) {
 // > добавляем несколько функция для тестирования
 function _dump(...$values) : void
 {
-    echo implode(' | ', array_map([ \Gzhegow\Pipeline\Lib\Lib::class, 'debug_value' ], $values));
+    echo implode(' | ', array_map([ \Gzhegow\Lib\Lib::class, 'debug_value' ], $values));
 }
 
 function _dump_ln(...$values) : void
 {
-    echo implode(' | ', array_map([ \Gzhegow\Pipeline\Lib\Lib::class, 'debug_value' ], $values)) . PHP_EOL;
+    echo implode(' | ', array_map([ \Gzhegow\Lib\Lib::class, 'debug_value' ], $values)) . PHP_EOL;
 }
 
 function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutput = null) : void
@@ -81,7 +81,7 @@ function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutp
         $expect->output = $expectOutput;
     }
 
-    $status = \Gzhegow\Pipeline\Lib\Lib::assert_call($trace, $fn, $expect, $error, STDOUT);
+    $status = \Gzhegow\Lib\Lib::assert_call($trace, $fn, $expect, $error, STDOUT);
 
     if (! $status) {
         throw new \Gzhegow\Pipeline\Exception\LogicException();

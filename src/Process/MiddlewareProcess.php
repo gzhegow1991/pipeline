@@ -5,7 +5,6 @@ namespace Gzhegow\Pipeline\Process;
 use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Step\Step;
 use Gzhegow\Pipeline\Chain\MiddlewareChain;
-use Gzhegow\Pipeline\PipelineProcessManager;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\PipelineProcessManagerInterface;
 
