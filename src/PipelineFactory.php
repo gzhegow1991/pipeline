@@ -16,9 +16,18 @@ use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 class PipelineFactory implements PipelineFactoryInterface
 {
     public function newFacade(
-        PipelineProcessManagerInterface $processManager
+        PipelineProcessManagerInterface $processManager = null,
+        PipelineProcessorInterface $processor = null
     ) : PipelineFacadeInterface
     {
+        $processor = $processor ?? $this->newProcessor();
+
+        $processManager = null
+            ?? $processManager
+            ?? $this->newProcessManager(
+                $processor
+            );
+
         $facade = new PipelineFacade(
             $this,
             $processManager
@@ -28,23 +37,25 @@ class PipelineFactory implements PipelineFactoryInterface
     }
 
 
-    public function newProcessor() : PipelineProcessorInterface
-    {
-        $processor = new PipelineProcessor($this);
-
-        return $processor;
-    }
-
     public function newProcessManager(
-        PipelineProcessorInterface $processor
+        PipelineProcessorInterface $processor = null
     ) : PipelineProcessManagerInterface
     {
+        $processor = $processor ?? $this->newProcessor();
+
         $processManager = new PipelineProcessManager(
             $this,
             $processor
         );
 
         return $processManager;
+    }
+
+    public function newProcessor() : PipelineProcessorInterface
+    {
+        $processor = new PipelineProcessor($this);
+
+        return $processor;
     }
 
 
