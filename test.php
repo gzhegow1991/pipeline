@@ -72,7 +72,7 @@ function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutp
 // >>> ЗАПУСКАЕМ!
 
 // > сначала всегда фабрика
-$factory = new \Gzhegow\Pipeline\PipelineFactory();
+$factory = new \Gzhegow\Pipeline\Factory\DemoPipelineFactory();
 
 // > создаем процессор
 // > его задача выполнять конечные функции, предоставляя зависимости для их вызова (например, при использовании контейнера DI)
@@ -141,7 +141,7 @@ $fn = function () {
     _dump_ln('[ TEST 2 ]');
 
     // > создаем конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -172,7 +172,7 @@ $fn = function () {
     _dump_ln('[ TEST 3 ]');
 
     // > создаем конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -203,7 +203,7 @@ $fn = function () {
     _dump_ln('[ TEST 4 ]');
 
     // > создаем конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -233,7 +233,7 @@ $fn = function () {
     _dump_ln('[ TEST 5 ]');
 
     // > создаем конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -266,7 +266,7 @@ $fn = function () {
     _dump_ln('[ TEST 6 ]');
 
     // > создаем конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -311,7 +311,7 @@ $fn = function () use ($factory) {
     _dump_ln('[ TEST 7 ]');
 
     // > создаем конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > создаем посредник
     $middleware = $factory->newMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class);
@@ -357,7 +357,7 @@ $fn = function () {
     _dump_ln('[ TEST 8 ]');
 
     // > создаем конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -396,7 +396,7 @@ $fn = function () {
     _dump_ln('[ TEST 9 ]');
 
     // > создаем дочерний конвеер
-    $pipelineChild = \Gzhegow\Pipeline\Pipeline::new();
+    $pipelineChild = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > добавляем действия в конвеер
     $pipelineChild
@@ -405,7 +405,7 @@ $fn = function () {
     ;
 
     // > создаем родительский конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new();
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     // > при добавлении конвееров они будут склонированы, то есть один и тот же экземпляр может быть добавлен сколько угодно раз
@@ -441,7 +441,7 @@ $fn = function () {
     _dump_ln('[ TEST 10 ]');
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new()
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
         ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
         ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
@@ -477,7 +477,7 @@ $fn = function () {
     _dump_ln('[ TEST 11 ]');
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new()
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
         ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
         ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::class)
@@ -521,7 +521,7 @@ $fn = function () {
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::class)
     ;
 
-    $pipeline2nd = \Gzhegow\Pipeline\Pipeline::new()
+    $pipeline2nd = \Gzhegow\Pipeline\Pipeline::pipeline()
         ->middleware($middleware2nd)
     ;
 
@@ -532,12 +532,12 @@ $fn = function () {
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
     ;
 
-    $pipeline1st = \Gzhegow\Pipeline\Pipeline::new()
+    $pipeline1st = \Gzhegow\Pipeline\Pipeline::pipeline()
         ->middleware($middleware1st)
     ;
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
-    $pipeline = \Gzhegow\Pipeline\Pipeline::new()
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
         ->pipeline($pipeline1st)
         ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)

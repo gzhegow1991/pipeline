@@ -9,9 +9,9 @@ use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 
 class Pipeline
 {
-    public static function new() : PipelineChain
+    public static function pipeline() : PipelineChain
     {
-        $pipeline = static::$facade->new();
+        $pipeline = static::$facade->pipeline();
 
         return $pipeline;
     }

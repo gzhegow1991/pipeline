@@ -9,7 +9,7 @@ use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
 
 interface PipelineFacadeInterface
 {
-    public function new() : PipelineChain;
+    public function pipeline() : PipelineChain;
 
     public function middleware($from) : MiddlewareChain;
 

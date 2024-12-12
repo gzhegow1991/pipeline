@@ -12,31 +12,6 @@ use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 
 interface PipelineFactoryInterface
 {
-    /**
-     * @param PipelineProcessManagerInterface|null $processManager
-     *
-     * @return PipelineFacadeInterface
-     */
-    public function makeFacade(
-        $processManager = null
-    ) : object;
-
-
-    /**
-     * @param PipelineProcessorInterface $processor
-     *
-     * @return PipelineProcessManagerInterface
-     */
-    public function makeProcessManager(
-        $processor = null
-    ) : object;
-
-    /**
-     * @return PipelineProcessorInterface
-     */
-    public function makeProcessor() : object;
-
-
     public function newPipeline() : PipelineChain;
 
     public function newMiddleware($from) : MiddlewareChain;

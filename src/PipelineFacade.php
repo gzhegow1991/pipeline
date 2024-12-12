@@ -32,7 +32,7 @@ class PipelineFacade implements PipelineFacadeInterface
     }
 
 
-    public function new() : PipelineChain
+    public function pipeline() : PipelineChain
     {
         $pipeline = $this->factory->newPipeline();
 
