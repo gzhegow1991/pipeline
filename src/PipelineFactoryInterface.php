@@ -12,16 +12,29 @@ use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 
 interface PipelineFactoryInterface
 {
-    public function newFacade(
-        PipelineProcessManagerInterface $processManager
-    ) : PipelineFacadeInterface;
+    /**
+     * @param PipelineProcessManagerInterface|null $processManager
+     *
+     * @return PipelineFacadeInterface
+     */
+    public function makeFacade(
+        $processManager = null
+    ) : object;
 
 
-    public function newProcessor() : PipelineProcessorInterface;
+    /**
+     * @param PipelineProcessorInterface $processor
+     *
+     * @return PipelineProcessManagerInterface
+     */
+    public function makeProcessManager(
+        $processor = null
+    ) : object;
 
-    public function newProcessManager(
-        PipelineProcessorInterface $processor
-    ) : PipelineProcessManagerInterface;
+    /**
+     * @return PipelineProcessorInterface
+     */
+    public function makeProcessor() : object;
 
 
     public function newPipeline() : PipelineChain;
