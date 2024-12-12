@@ -303,7 +303,7 @@ _assert_call($fn, [], <<<HEREDOC
 Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Runtime\PipelineException" | "Unhandled exception occured during processing pipeline"
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception" | "Hello, World!"
-"[ RESULT ]" | { NULL }
+"[ RESULT ]" | NULL
 ""
 HEREDOC
 );
