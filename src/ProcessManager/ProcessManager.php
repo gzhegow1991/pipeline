@@ -1,15 +1,17 @@
 <?php
 
-namespace Gzhegow\Pipeline;
+namespace Gzhegow\Pipeline\ProcessManager;
 
 use Gzhegow\Pipeline\Step\Step;
 use Gzhegow\Pipeline\Pipe\Pipe;
+use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Exception\RuntimeException;
+use Gzhegow\Pipeline\Processor\ProcessorInterface;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
 
 
-class PipelineProcessManager implements PipelineProcessManagerInterface
+class ProcessManager implements ProcessManagerInterface
 {
     /**
      * @var PipelineFactoryInterface
@@ -17,7 +19,7 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
     protected $factory;
 
     /**
-     * @var PipelineProcessorInterface
+     * @var ProcessorInterface
      */
     protected $processor;
 
@@ -25,7 +27,7 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
     public function __construct(
         PipelineFactoryInterface $factory,
         //
-        PipelineProcessorInterface $processor
+        ProcessorInterface $processor
     )
     {
         $this->factory = $factory;

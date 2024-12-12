@@ -6,7 +6,7 @@ use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Step\Step;
 use Gzhegow\Pipeline\Chain\MiddlewareChain;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
-use Gzhegow\Pipeline\PipelineProcessManagerInterface;
+use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
 
 
 class MiddlewareProcess extends AbstractProcess
@@ -29,7 +29,7 @@ class MiddlewareProcess extends AbstractProcess
 
     public function __construct(
         PipelineFactoryInterface $factory,
-        PipelineProcessManagerInterface $processManager,
+        ProcessManagerInterface $processManager,
         //
         MiddlewareChain $middleware
     )

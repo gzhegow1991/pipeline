@@ -92,19 +92,25 @@ function _assert_call(\Closure $fn, array $expectResult = [], string $expectOutp
 // >>> ЗАПУСКАЕМ!
 
 // > сначала всегда фабрика
-$factory = new \Gzhegow\Pipeline\Factory\DemoPipelineFactory();
+$factory = new \Gzhegow\Pipeline\PipelineFactory();
 
 // > создаем процессор
 // > его задача выполнять конечные функции, предоставляя зависимости для их вызова (например, при использовании контейнера DI)
-$processor = $factory->makeProcessor();
+$processor = new \Gzhegow\Pipeline\Processor\Processor($factory);
 
 // > создаем менеджер процессов
 // > его задача выполнять шаги процессов, созданных на основе цепочек, и передавать управление процессору
-$processManager = $factory->makeProcessManager($processor);
+$processManager = new \Gzhegow\Pipeline\ProcessManager\ProcessManager(
+    $factory,
+    $processor
+);
 
 // > создаем фасад и сохраняем его глобально (не обязательно)
 // > его задача - предоставить общий интерфейс для управления конвеерами во всей программе
-$facade = $factory->makeFacade($processManager);
+$facade = new \Gzhegow\Pipeline\PipelineFacade(
+    $factory,
+    $processManager
+);
 
 // > сохраняем фасад статически, позволяя вызывать его напрямую без внедрения зависимостей
 // > но правильный путь - это всё-таки передавать фасад зависимостью, позволяя его подменить, а не фиксируя статику в коде

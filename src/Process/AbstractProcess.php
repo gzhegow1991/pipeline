@@ -4,9 +4,9 @@ namespace Gzhegow\Pipeline\Process;
 
 use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Step\Step;
-use Gzhegow\Pipeline\PipelineProcessManager;
+use Gzhegow\Pipeline\ProcessManager\ProcessManager;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
-use Gzhegow\Pipeline\PipelineProcessManagerInterface;
+use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
 
 
 abstract class AbstractProcess implements PipelineProcessInterface
@@ -17,7 +17,7 @@ abstract class AbstractProcess implements PipelineProcessInterface
     protected $factory;
 
     /**
-     * @var PipelineProcessManager
+     * @var ProcessManager
      */
     protected $processManager;
 
@@ -44,7 +44,7 @@ abstract class AbstractProcess implements PipelineProcessInterface
     public function __construct(
         PipelineFactoryInterface $factory,
         //
-        PipelineProcessManagerInterface $processManager
+        ProcessManagerInterface $processManager
     )
     {
         $this->factory = $factory;

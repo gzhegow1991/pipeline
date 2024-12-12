@@ -1,11 +1,11 @@
 <?php
 
-namespace Gzhegow\Pipeline;
+namespace Gzhegow\Pipeline\ProcessManager;
 
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 
 
-interface PipelineProcessManagerInterface
+interface ProcessManagerInterface
 {
     public function run($pipeline, $input = null, $context = null);
 

@@ -11,6 +11,7 @@ use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
+use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
 
 
 class PipelineFactory implements PipelineFactoryInterface
@@ -35,7 +36,7 @@ class PipelineFactory implements PipelineFactoryInterface
 
 
     public function newMiddlewareProcess(
-        PipelineProcessManagerInterface $processManager,
+        ProcessManagerInterface $processManager,
         //
         MiddlewareChain $middleware
     ) : ?MiddlewareProcess
@@ -51,7 +52,7 @@ class PipelineFactory implements PipelineFactoryInterface
     }
 
     public function newPipelineProcess(
-        PipelineProcessManagerInterface $processManager,
+        ProcessManagerInterface $processManager,
         //
         PipelineChain $pipeline
     ) : ?PipelineProcess
@@ -67,10 +68,9 @@ class PipelineFactory implements PipelineFactoryInterface
     }
 
 
-    public function newProcessFrom(PipelineProcessManagerInterface $processManager, $from) : ?PipelineProcessInterface
+    public function newProcessFrom(ProcessManagerInterface $processManager, $from) : ?PipelineProcessInterface
     {
         $process = null
-            ?? $this->newProcessFromInstance($from)
             ?? $this->newProcessFromPipeline($processManager, $from)
             ?? $this->newProcessFromMiddleware($processManager, $from);
 
@@ -86,30 +86,18 @@ class PipelineFactory implements PipelineFactoryInterface
         return $process;
     }
 
-    public function newProcessFromInstance($from) : ?PipelineProcessInterface
+    public function newProcessFromMiddleware(ProcessManagerInterface $processManager, $middleware) : ?MiddlewareProcess
     {
-        if (! ($from instanceof PipelineProcessInterface)) {
+        if (! ($middleware instanceof MiddlewareChain)) {
             return null;
         }
 
-        $process = clone $from;
-        $process->reset();
+        $process = $this->newMiddlewareProcess($processManager, $middleware);
 
         return $process;
     }
 
-    public function newProcessFromMiddleware(PipelineProcessManagerInterface $processManager, $from) : ?MiddlewareProcess
-    {
-        if (! ($from instanceof MiddlewareChain)) {
-            return null;
-        }
-
-        $process = $this->newMiddlewareProcess($processManager, $from);
-
-        return $process;
-    }
-
-    public function newProcessFromPipeline(PipelineProcessManagerInterface $processManager, $pipeline) : ?PipelineProcess
+    public function newProcessFromPipeline(ProcessManagerInterface $processManager, $pipeline) : ?PipelineProcess
     {
         if (! ($pipeline instanceof PipelineChain)) {
             return null;

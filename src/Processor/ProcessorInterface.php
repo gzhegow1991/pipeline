@@ -1,6 +1,6 @@
 <?php
 
-namespace Gzhegow\Pipeline;
+namespace Gzhegow\Pipeline\Processor;
 
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
@@ -8,7 +8,7 @@ use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
 use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
 
-interface PipelineProcessorInterface
+interface ProcessorInterface
 {
     /**
      * @return array{ 0?: mixed }

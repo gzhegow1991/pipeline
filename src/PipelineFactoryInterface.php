@@ -2,12 +2,12 @@
 
 namespace Gzhegow\Pipeline;
 
-
 use Gzhegow\Pipeline\Process\PipelineProcess;
 use Gzhegow\Pipeline\Process\MiddlewareProcess;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
 
 
 interface PipelineFactoryInterface
@@ -18,25 +18,23 @@ interface PipelineFactoryInterface
 
 
     public function newMiddlewareProcess(
-        PipelineProcessManagerInterface $processManager,
+        ProcessManagerInterface $processManager,
         //
         MiddlewareChain $middleware
     ) : ?MiddlewareProcess;
 
     public function newPipelineProcess(
-        PipelineProcessManagerInterface $processManager,
+        ProcessManagerInterface $processManager,
         //
         PipelineChain $pipeline
     ) : ?PipelineProcess;
 
 
-    public function newProcessFrom(PipelineProcessManagerInterface $processManager, $from) : ?PipelineProcessInterface;
+    public function newProcessFrom(ProcessManagerInterface $processManager, $from) : ?PipelineProcessInterface;
 
-    public function newProcessFromInstance($from) : ?PipelineProcessInterface;
+    public function newProcessFromMiddleware(ProcessManagerInterface $processManager, $middleware) : ?MiddlewareProcess;
 
-    public function newProcessFromMiddleware(PipelineProcessManagerInterface $processManager, $from) : ?MiddlewareProcess;
-
-    public function newProcessFromPipeline(PipelineProcessManagerInterface $processManager, $pipeline) : ?PipelineProcess;
+    public function newProcessFromPipeline(ProcessManagerInterface $processManager, $pipeline) : ?PipelineProcess;
 
 
     public function newHandlerObject(string $class, array $parameters = []) : object;

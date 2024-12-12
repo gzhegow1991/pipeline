@@ -6,7 +6,7 @@ use Gzhegow\Pipeline\Pipe\Pipe;
 use Gzhegow\Pipeline\Handler\GenericHandler;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Exception\RuntimeException;
-use Gzhegow\Pipeline\PipelineProcessManagerInterface;
+use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
 use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
@@ -20,7 +20,7 @@ abstract class AbstractChain implements ChainInterface
      */
     protected $factory;
     /**
-     * @var PipelineProcessManagerInterface
+     * @var ProcessManagerInterface
      */
     protected $processManager;
 
@@ -46,11 +46,11 @@ abstract class AbstractChain implements ChainInterface
 
 
     /**
-     * @param PipelineProcessManagerInterface $processManager
+     * @param ProcessManagerInterface $processManager
      *
      * @return static
      */
-    public function setProcessManager(PipelineProcessManagerInterface $processManager) // : static
+    public function setProcessManager(ProcessManagerInterface $processManager) // : static
     {
         $this->processManager = $processManager;
 

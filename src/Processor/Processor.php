@@ -1,9 +1,10 @@
 <?php
 
-namespace Gzhegow\Pipeline;
+namespace Gzhegow\Pipeline\Processor;
 
 use Gzhegow\Lib\Lib;
 use Gzhegow\Pipeline\Handler\GenericHandler;
+use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Exception\RuntimeException;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
@@ -11,7 +12,7 @@ use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
 use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
 
-class PipelineProcessor implements PipelineProcessorInterface
+class Processor implements ProcessorInterface
 {
     /**
      * @var PipelineFactoryInterface
