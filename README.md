@@ -46,7 +46,10 @@ set_exception_handler(function (\Throwable $e) {
         echo $current->getMessage() . PHP_EOL;
 
         foreach ( $e->getTrace() as $traceItem ) {
-            echo "{$traceItem['file']} : {$traceItem['line']}" . PHP_EOL;
+            $file = $traceItem[ 'file' ] ?? '{file}';
+            $line = $traceItem[ 'line' ] ?? '{line}';
+
+            echo "{$file} : {$line}" . PHP_EOL;
         }
 
         echo PHP_EOL;
