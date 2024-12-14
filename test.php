@@ -60,32 +60,14 @@ function _debug(...$values) : void
     echo implode(' | ', $lines) . PHP_EOL;
 }
 
-function _assert_call(
-    \Closure $fn,
-    array $expectResult = [], string $expectOutput = null, float $expectMicrotime = null
+function _assert_output(
+    \Closure $fn, string $expect = null
 ) : void
 {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
-    $expect = (object) [];
-
-    if (count($expectResult)) {
-        $expect->result = $expectResult[ 0 ];
-    }
-
-    if (null !== $expectOutput) {
-        $expect->output = $expectOutput;
-    }
-
-    if (null !== $expectMicrotime) {
-        $expect->microtime = $expectMicrotime;
-    }
-
-    $status = \Gzhegow\Lib\Lib::assert_call($trace, $fn, $expect, $error, STDOUT);
-
-    if (! $status) {
-        throw new \Gzhegow\Lib\Exception\LogicException();
-    }
+    \Gzhegow\Lib\Lib::assert_stdout([ STDOUT ]);
+    \Gzhegow\Lib\Lib::assert_output($trace, $fn, $expect);
 }
 
 
@@ -153,7 +135,7 @@ $fn = function () use ($factory, $processManager) {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 1 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
@@ -185,7 +167,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 2 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
@@ -217,7 +199,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 3 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
@@ -249,7 +231,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 4 ]"
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result."
@@ -281,7 +263,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 5 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Fallback\DemoSkipFallback::__invoke
@@ -324,7 +306,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 6 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Runtime\PipelineException" | "Unhandled exception occured during processing pipeline"
@@ -372,7 +354,7 @@ $fn = function () use ($factory) {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 7 ]"
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
@@ -413,7 +395,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 8 ]"
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
@@ -458,7 +440,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 9 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
@@ -494,7 +476,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 10 ]"
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
@@ -533,7 +515,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 11 ]"
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
@@ -595,7 +577,7 @@ $fn = function () {
 
     echo '';
 };
-_assert_call($fn, [], <<<HEREDOC
+_assert_output($fn, <<<HEREDOC
 "[ TEST 12 ]"
 Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
 @before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
