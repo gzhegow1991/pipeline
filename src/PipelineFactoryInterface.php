@@ -6,8 +6,8 @@ use Gzhegow\Pipeline\Process\PipelineProcess;
 use Gzhegow\Pipeline\Process\MiddlewareProcess;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
-use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
+use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 
 
 interface PipelineFactoryInterface

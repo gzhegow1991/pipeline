@@ -1,13 +1,13 @@
 <?php
 
-namespace Gzhegow\Pipeline\Handler\Demo\Fallback;
+namespace Gzhegow\Pipeline\Demo\Handler\Fallback;
 
 
-class DemoThrowableFallback
+class DemoRuntimeExceptionFallback
 {
     public function __invoke(\Throwable $e, $input = null, $context = null, $state = null)
     {
-        // if (! is_a($e, \Throwable::class)) return null;
+        if (! is_a($e, \RuntimeException::class)) return null;
 
         echo __METHOD__ . PHP_EOL;
 

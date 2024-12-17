@@ -1,11 +1,11 @@
 <?php
 
-namespace Gzhegow\Pipeline\Handler\Demo\Middleware;
+namespace Gzhegow\Pipeline\Demo\Handler\Middleware;
 
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 
 
-class Demo1stMiddleware
+class Demo2ndMiddleware
 {
     public function __invoke(PipelineProcessInterface $pipeline, $input = null, $context = null, $state = null) // : mixed
     {

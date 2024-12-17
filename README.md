@@ -136,8 +136,8 @@ $fn = function () use ($factory, $processManager) {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo2ndAction::class)
     ;
 
     // > устанавливаем стартовый $input, который будет меняться при прохождении по цепочке на результат прошлого действия
@@ -161,9 +161,9 @@ $fn = function () use ($factory, $processManager) {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 1 ]"
-Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
+Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke result."
 ""
 HEREDOC
 );
@@ -178,8 +178,8 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
     ;
 
     $myInput = 'any data 2';
@@ -193,8 +193,8 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 2 ]"
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 "[ RESULT ]" | "any data 2"
 ""
 HEREDOC
@@ -210,8 +210,8 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::class)
-        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoLogicExceptionAction::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoLogicExceptionFallback::class)
     ;
 
     $myInput = null;
@@ -225,9 +225,9 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 3 ]"
-Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result."
+Gzhegow\Pipeline\Demo\Handler\Action\DemoLogicExceptionAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ""
 HEREDOC
 );
@@ -243,7 +243,7 @@ $fn = function () {
     // > добавляем действия в конвеер
     $pipeline
         ->throwable(new \LogicException('Hello, World!'))
-        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoLogicExceptionFallback::class)
     ;
 
     $myInput = null;
@@ -257,8 +257,8 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 4 ]"
-Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result."
+Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ""
 HEREDOC
 );
@@ -273,9 +273,9 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::class)
-        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoSkipFallback::class)
-        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoExceptionAction::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoSkipFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoThrowableFallback::class)
     ;
 
     $myInput = null;
@@ -289,10 +289,10 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 5 ]"
-Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Fallback\DemoSkipFallback::__invoke
-Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::__invoke result."
+Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Fallback\DemoSkipFallback::__invoke
+Gzhegow\Pipeline\Demo\Handler\Fallback\DemoThrowableFallback::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoThrowableFallback::__invoke result."
 ""
 HEREDOC
 );
@@ -307,8 +307,8 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::class)
-        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoExceptionAction::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoLogicExceptionFallback::class)
     ;
 
     $myInput = null;
@@ -332,7 +332,7 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 6 ]"
-Gzhegow\Pipeline\Handler\Demo\Action\DemoExceptionAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::__invoke
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Runtime\PipelineException" | "Unhandled exception occured during processing pipeline"
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception" | "Hello, World!"
 "[ RESULT ]" | NULL
@@ -352,15 +352,15 @@ $fn = function () use ($factory) {
     $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > создаем посредник
-    $middleware = $factory->newMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class);
+    $middleware = $factory->newMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class);
 
     // > вызывать можно и статически, если перед этим сохранили фасад
-    // $middleware = \Gzhegow\Pipeline\PipelineFacade::middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class);
+    // $middleware = \Gzhegow\Pipeline\PipelineFacade::middleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class);
 
     // > добавлять вложенные pipeline/middleware можно также используя синтаксис ->startX()/->endX()
     $middleware
-        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
         ->endMiddleware()
     ;
 
@@ -380,12 +380,12 @@ $fn = function () use ($factory) {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 7 ]"
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke result."
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke result."
 ""
 HEREDOC
 );
@@ -400,12 +400,12 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
-        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\DemoOmitMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo2ndAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo3rdAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo4thAction::class)
         ->endMiddleware()
         ->endMiddleware()
     ;
@@ -421,11 +421,11 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 8 ]"
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Middleware\DemoOmitMiddleware::__invoke result."
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\DemoOmitMiddleware::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\DemoOmitMiddleware::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Middleware\DemoOmitMiddleware::__invoke result."
 ""
 HEREDOC
 );
@@ -440,8 +440,8 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipelineChild
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
     ;
 
     // > создаем родительский конвеер
@@ -451,7 +451,7 @@ $fn = function () {
     // > при добавлении конвееров они будут склонированы, то есть один и тот же экземпляр может быть добавлен сколько угодно раз
     $pipeline
         ->pipeline($pipelineChild)                                           // этот конвеер просто передаст $result дальше
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class) // на этом этапе результат будет заменен
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class) // на этом этапе результат будет заменен
         ->pipeline($pipelineChild)                                           // этот конвеер передаст измененный $result дальше
     ;
 
@@ -466,12 +466,12 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 9 ]"
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke result."
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke result."
 ""
 HEREDOC
 );
@@ -483,10 +483,10 @@ $fn = function () {
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
-        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
-        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo2ndAction::class)
         ->endMiddleware()
         ->endMiddleware()
     ;
@@ -502,13 +502,13 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 10 ]"
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke result."
 ""
 HEREDOC
 );
@@ -520,12 +520,12 @@ $fn = function () {
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
-        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
-        ->startMiddleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::class)
-        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoRuntimeExceptionFallback::class)
-        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::class)
-        ->fallback(\Gzhegow\Pipeline\Handler\Demo\Fallback\DemoThrowableFallback::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoLogicExceptionAction::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoRuntimeExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoLogicExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoThrowableFallback::class)
         ->endMiddleware()
         ->endMiddleware()
     ;
@@ -541,13 +541,13 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 11 ]"
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoLogicExceptionAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Fallback\DemoLogicExceptionFallback::__invoke result."
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoLogicExceptionAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ""
 HEREDOC
 );
@@ -559,9 +559,9 @@ $fn = function () {
     _dump('[ TEST 12 ]');
 
     // > добавляем действия в конвеер 2 уровня
-    $middleware2nd = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::class)
+    $middleware2nd = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo3rdAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo4thAction::class)
     ;
 
     $pipeline2nd = \Gzhegow\Pipeline\Pipeline::pipeline()
@@ -569,10 +569,10 @@ $fn = function () {
     ;
 
     // > добавляем действия (в том числе дочерние конвееры) в конвеер 1 уровня
-    $middleware1st = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::class)
+    $middleware1st = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
         ->pipeline($pipeline2nd)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo2ndAction::class)
     ;
 
     $pipeline1st = \Gzhegow\Pipeline\Pipeline::pipeline()
@@ -581,15 +581,15 @@ $fn = function () {
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
         ->pipeline($pipeline1st)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
         ->pipeline($pipeline1st)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
         ->pipeline($pipeline1st)
-        ->action(\Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
     ;
 
     $myInput = null;
@@ -603,37 +603,37 @@ $fn = function () {
 };
 _assert_output($fn, <<<HEREDOC
 "[ TEST 12 ]"
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo1stAction::__invoke
-@before :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo3rdAction::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo4thAction::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo2ndMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke
-@after :: Gzhegow\Pipeline\Handler\Demo\Middleware\Demo1stMiddleware::__invoke
-Gzhegow\Pipeline\Handler\Demo\Action\DemoPassInputToResultAction::__invoke
-"[ RESULT ]" | "Gzhegow\Pipeline\Handler\Demo\Action\Demo2ndAction::__invoke result."
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo3rdAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo4thAction::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo3rdAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo4thAction::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo3rdAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo4thAction::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke result."
 ""
 HEREDOC
 );

@@ -4,8 +4,8 @@ namespace Gzhegow\Pipeline;
 
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
-use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
+use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 
 
 class PipelineFacade implements PipelineFacadeInterface

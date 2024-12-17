@@ -1,6 +1,6 @@
 <?php
 
-namespace Gzhegow\Pipeline\Handler\Demo\Action;
+namespace Gzhegow\Pipeline\Demo\Handler\Action;
 
 use Gzhegow\Pipeline\Exception\Exception;
 

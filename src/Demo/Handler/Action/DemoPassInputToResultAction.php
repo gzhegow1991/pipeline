@@ -1,13 +1,13 @@
 <?php
 
-namespace Gzhegow\Pipeline\Handler\Demo\Action;
+namespace Gzhegow\Pipeline\Demo\Handler\Action;
 
-class Demo2ndAction
+class DemoPassInputToResultAction
 {
     public function __invoke($input = null, $context = null, $state = null) // : mixed
     {
         echo __METHOD__ . PHP_EOL;
 
-        return __METHOD__ . ' result.';
+        return $input;
     }
 }

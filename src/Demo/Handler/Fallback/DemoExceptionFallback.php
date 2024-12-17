@@ -1,6 +1,6 @@
 <?php
 
-namespace Gzhegow\Pipeline\Handler\Demo\Fallback;
+namespace Gzhegow\Pipeline\Demo\Handler\Fallback;
 
 
 class DemoExceptionFallback

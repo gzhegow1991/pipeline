@@ -1,8 +1,8 @@
 <?php
 
-namespace Gzhegow\Pipeline\Handler\Demo\Action;
+namespace Gzhegow\Pipeline\Demo\Handler\Action;
 
-class Demo3rdAction
+class Demo2ndAction
 {
     public function __invoke($input = null, $context = null, $state = null) // : mixed
     {
