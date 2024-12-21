@@ -35,9 +35,13 @@ class Pipeline
     }
 
 
-    public static function setFacade(PipelineFacadeInterface $facade) : void
+    public static function setFacade(PipelineFacadeInterface $facade) : ?PipelineFacadeInterface
     {
+        $last = static::$facade;
+
         static::$facade = $facade;
+
+        return $last;
     }
 
     /**
