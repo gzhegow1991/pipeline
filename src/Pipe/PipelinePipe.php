@@ -44,7 +44,10 @@ class PipelinePipe
     public $handlerFallback;
 
 
-    public static function from($from) : self
+    /**
+     * @return static
+     */
+    public static function from($from) // : static
     {
         $instance = static::tryFrom($from, $error);
 
@@ -55,7 +58,10 @@ class PipelinePipe
         return $instance;
     }
 
-    public static function tryFrom($from, \Throwable &$last = null) : ?self
+    /**
+     * @return static|null
+     */
+    public static function tryFrom($from, \Throwable &$last = null) // : ?static
     {
         $last = null;
 
@@ -81,7 +87,10 @@ class PipelinePipe
     }
 
 
-    public static function tryFromInstance($instance) : ?self
+    /**
+     * @return static|null
+     */
+    public static function tryFromInstance($instance) // : ?static
     {
         if (! ($instance instanceof static)) {
             return Lib::php_error(
@@ -92,7 +101,10 @@ class PipelinePipe
         return $instance;
     }
 
-    public static function tryFromMiddleware($middleware) : ?self
+    /**
+     * @return static|null
+     */
+    public static function tryFromMiddleware($middleware) // : ?static
     {
         if (! ($middleware instanceof MiddlewareChain)) {
             return Lib::php_error(
@@ -106,7 +118,10 @@ class PipelinePipe
         return $instance;
     }
 
-    public static function tryFromHandlerAction($handlerAction) : ?self
+    /**
+     * @return static|null
+     */
+    public static function tryFromHandlerAction($handlerAction) // : ?static
     {
         if (! ($handlerAction instanceof GenericHandlerAction)) {
             return Lib::php_error(
@@ -120,7 +135,10 @@ class PipelinePipe
         return $instance;
     }
 
-    public static function tryFromHandlerFallback($handlerFallback) : ?self
+    /**
+     * @return static|null
+     */
+    public static function tryFromHandlerFallback($handlerFallback) // : ?static
     {
         if (! ($handlerFallback instanceof GenericHandlerFallback)) {
             return Lib::php_error(
@@ -134,7 +152,10 @@ class PipelinePipe
         return $instance;
     }
 
-    public static function tryFromHandlerMiddleware($handlerMiddleware) : ?self
+    /**
+     * @return static|null
+     */
+    public static function tryFromHandlerMiddleware($handlerMiddleware) // : ?static
     {
         if (! ($handlerMiddleware instanceof GenericHandlerMiddleware)) {
             return Lib::php_error(
@@ -148,7 +169,10 @@ class PipelinePipe
         return $instance;
     }
 
-    public static function tryFromPipeline($pipeline) : ?self
+    /**
+     * @return static|null
+     */
+    public static function tryFromPipeline($pipeline) // : ?static
     {
         if (! ($pipeline instanceof PipelineChain)) {
             return Lib::php_error(

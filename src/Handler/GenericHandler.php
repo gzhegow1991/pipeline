@@ -57,7 +57,10 @@ abstract class GenericHandler implements \Serializable
     public $function;
 
 
-    public static function from($from) : self
+    /**
+     * @return static
+     */
+    public static function from($from) // : static
     {
         $instance = static::tryFrom($from, $error);
 
@@ -68,7 +71,10 @@ abstract class GenericHandler implements \Serializable
         return $instance;
     }
 
-    public static function tryFrom($from, \Throwable &$last = null) : ?self
+    /**
+     * @return static|null
+     */
+    public static function tryFrom($from, \Throwable &$last = null) // : ?static
     {
         $last = null;
 
@@ -93,7 +99,10 @@ abstract class GenericHandler implements \Serializable
     }
 
 
-    protected static function tryFromInstance($instance) : ?self
+    /**
+     * @return static|null
+     */
+    protected static function tryFromInstance($instance) // : ?static
     {
         if (! is_a($instance, static::class)) {
             return Lib::php_error(
@@ -104,7 +113,10 @@ abstract class GenericHandler implements \Serializable
         return $instance;
     }
 
-    protected static function tryFromClosure($closure) : ?self
+    /**
+     * @return static|null
+     */
+    protected static function tryFromClosure($closure) // : ?static
     {
         if (! is_a($closure, \Closure::class)) {
             return Lib::php_error(
@@ -118,7 +130,10 @@ abstract class GenericHandler implements \Serializable
         return $instance;
     }
 
-    protected static function tryFromMethod($method) : ?self
+    /**
+     * @return static|null
+     */
+    protected static function tryFromMethod($method) // : ?static
     {
         if (! Lib::php_method_exists($method, null, $methodArray)) {
             return Lib::php_error(
@@ -143,7 +158,10 @@ abstract class GenericHandler implements \Serializable
         return $instance;
     }
 
-    protected static function tryFromInvokable($invokable) : ?self
+    /**
+     * @return static|null
+     */
+    protected static function tryFromInvokable($invokable) // : ?static
     {
         $instance = null;
 
@@ -179,7 +197,10 @@ abstract class GenericHandler implements \Serializable
         return $instance;
     }
 
-    protected static function tryFromFunction($function) : ?self
+    /**
+     * @return static|null
+     */
+    protected static function tryFromFunction($function) // : ?static
     {
         if (null === ($_function = Lib::parse_string_not_empty($function))) {
             return Lib::php_error(
