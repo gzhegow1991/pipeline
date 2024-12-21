@@ -64,6 +64,16 @@ set_exception_handler(function (\Throwable $e) {
 
 
 // > добавляем несколько функция для тестирования
+function _debug(...$values) : void
+{
+    $lines = [];
+    foreach ( $values as $value ) {
+        $lines[] = \Gzhegow\Lib\Lib::debug_type_id($value);
+    }
+
+    echo implode(' | ', $lines) . PHP_EOL;
+}
+
 function _dump(...$values) : void
 {
     $lines = [];
@@ -74,14 +84,13 @@ function _dump(...$values) : void
     echo implode(' | ', $lines) . PHP_EOL;
 }
 
-function _debug(...$values) : void
+function _dump_array($value, int $maxLevel = null, bool $multiline = false) : void
 {
-    $lines = [];
-    foreach ( $values as $value ) {
-        $lines[] = \Gzhegow\Lib\Lib::debug_type_id($value);
-    }
+    $content = $multiline
+        ? \Gzhegow\Lib\Lib::debug_array_multiline($value, $maxLevel)
+        : \Gzhegow\Lib\Lib::debug_array($value, $maxLevel);
 
-    echo implode(' | ', $lines) . PHP_EOL;
+    echo $content . PHP_EOL;
 }
 
 function _assert_output(
