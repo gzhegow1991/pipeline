@@ -2,11 +2,11 @@
 
 namespace Gzhegow\Pipeline\Process;
 
-use Gzhegow\Pipeline\Pipe\Pipe;
-use Gzhegow\Pipeline\Step\Step;
+use Gzhegow\Pipeline\Pipe\PipelinePipe;
+use Gzhegow\Pipeline\Step\PipelineStep;
 use Gzhegow\Pipeline\Chain\MiddlewareChain;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
-use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
+use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
 
 
 class MiddlewareProcess extends AbstractProcess
@@ -17,7 +17,7 @@ class MiddlewareProcess extends AbstractProcess
     protected $middleware;
 
     /**
-     * @var Pipe
+     * @var PipelinePipe
      */
     protected $pipe;
 
@@ -29,7 +29,7 @@ class MiddlewareProcess extends AbstractProcess
 
     public function __construct(
         PipelineFactoryInterface $factory,
-        ProcessManagerInterface $processManager,
+        PipelineProcessManagerInterface $processManager,
         //
         MiddlewareChain $middleware
     )
@@ -52,10 +52,10 @@ class MiddlewareProcess extends AbstractProcess
     }
 
 
-    public function getNextStep() : ?Step
+    public function getNextStep() : ?PipelineStep
     {
         if ($pipe = $this->pipe) {
-            $step = new Step();
+            $step = new PipelineStep();
             $step->process = $this;
             $step->pipe = $pipe;
 

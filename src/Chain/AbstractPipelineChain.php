@@ -2,35 +2,35 @@
 
 namespace Gzhegow\Pipeline\Chain;
 
-use Gzhegow\Pipeline\Pipe\Pipe;
+use Gzhegow\Pipeline\Pipe\PipelinePipe;
 use Gzhegow\Pipeline\Handler\GenericHandler;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Exception\RuntimeException;
-use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
 use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
 use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
 
 
-abstract class AbstractChain implements ChainInterface
+abstract class AbstractPipelineChain implements PipelineChainInterface
 {
     /**
      * @var PipelineFactoryInterface
      */
     protected $factory;
     /**
-     * @var ProcessManagerInterface
+     * @var PipelineProcessManagerInterface
      */
     protected $processManager;
 
     /**
-     * @var ChainInterface
+     * @var PipelineChainInterface
      */
     protected $parent;
 
     /**
-     * @var Pipe<ChainInterface|GenericHandler>[]
+     * @var PipelinePipe<PipelineChainInterface|GenericHandler>[]
      */
     protected $pipes = [];
     /**
@@ -46,11 +46,11 @@ abstract class AbstractChain implements ChainInterface
 
 
     /**
-     * @param ProcessManagerInterface $processManager
+     * @param PipelineProcessManagerInterface $processManager
      *
      * @return static
      */
-    public function setProcessManager(ProcessManagerInterface $processManager) // : static
+    public function setProcessManager(PipelineProcessManagerInterface $processManager) // : static
     {
         $this->processManager = $processManager;
 
@@ -59,7 +59,7 @@ abstract class AbstractChain implements ChainInterface
 
 
     /**
-     * @return Pipe<ChainInterface|GenericHandler>[]
+     * @return PipelinePipe<PipelineChainInterface|GenericHandler>[]
      */
     public function getPipes() : array
     {
@@ -71,7 +71,7 @@ abstract class AbstractChain implements ChainInterface
      */
     public function pipeline(PipelineChain $from) // : static
     {
-        $pipe = Pipe::from($from);
+        $pipe = PipelinePipe::from($from);
 
         $this->pipes[] = $pipe;
 
@@ -89,7 +89,7 @@ abstract class AbstractChain implements ChainInterface
         return $pipeline;
     }
 
-    public function endPipeline() : ChainInterface
+    public function endPipeline() : PipelineChainInterface
     {
         if (null === ($parent = $this->parent)) {
             throw new RuntimeException('No parent pipeline');
@@ -106,7 +106,7 @@ abstract class AbstractChain implements ChainInterface
      */
     public function middleware(MiddlewareChain $from) // : static
     {
-        $pipe = Pipe::from($from);
+        $pipe = PipelinePipe::from($from);
 
         $this->pipes[] = $pipe;
 
@@ -124,7 +124,7 @@ abstract class AbstractChain implements ChainInterface
         return $middleware;
     }
 
-    public function endMiddleware() : ChainInterface
+    public function endMiddleware() : PipelineChainInterface
     {
         if (null === ($parent = $this->parent)) {
             throw new RuntimeException('No parent middleware');
@@ -143,7 +143,7 @@ abstract class AbstractChain implements ChainInterface
     {
         $generic = GenericHandlerAction::from($from);
 
-        $pipe = Pipe::from($generic);
+        $pipe = PipelinePipe::from($generic);
 
         $this->pipes[] = $pipe;
 
@@ -157,7 +157,7 @@ abstract class AbstractChain implements ChainInterface
     {
         $generic = GenericHandlerFallback::from($from);
 
-        $pipe = Pipe::from($generic);
+        $pipe = PipelinePipe::from($generic);
 
         $this->pipes[] = $pipe;
 

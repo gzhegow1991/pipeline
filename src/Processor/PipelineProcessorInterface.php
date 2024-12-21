@@ -8,7 +8,7 @@ use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
 use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
 
-interface ProcessorInterface
+interface PipelineProcessorInterface
 {
     /**
      * @return array{ 0?: mixed }

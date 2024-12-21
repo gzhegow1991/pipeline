@@ -12,7 +12,7 @@ use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
 use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
 
-class Processor implements ProcessorInterface
+class PipelineProcessor implements PipelineProcessorInterface
 {
     /**
      * @var PipelineFactoryInterface

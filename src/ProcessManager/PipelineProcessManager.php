@@ -2,16 +2,16 @@
 
 namespace Gzhegow\Pipeline\ProcessManager;
 
-use Gzhegow\Pipeline\Step\Step;
-use Gzhegow\Pipeline\Pipe\Pipe;
+use Gzhegow\Pipeline\Step\PipelineStep;
+use Gzhegow\Pipeline\Pipe\PipelinePipe;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Exception\RuntimeException;
-use Gzhegow\Pipeline\Processor\ProcessorInterface;
+use Gzhegow\Pipeline\Processor\PipelineProcessorInterface;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
 
 
-class ProcessManager implements ProcessManagerInterface
+class PipelineProcessManager implements PipelineProcessManagerInterface
 {
     /**
      * @var PipelineFactoryInterface
@@ -19,7 +19,7 @@ class ProcessManager implements ProcessManagerInterface
     protected $factory;
 
     /**
-     * @var ProcessorInterface
+     * @var PipelineProcessorInterface
      */
     protected $processor;
 
@@ -27,7 +27,7 @@ class ProcessManager implements ProcessManagerInterface
     public function __construct(
         PipelineFactoryInterface $factory,
         //
-        ProcessorInterface $processor
+        PipelineProcessorInterface $processor
     )
     {
         $this->factory = $factory;
@@ -115,7 +115,7 @@ class ProcessManager implements ProcessManagerInterface
 
 
     protected function doStep(
-        Step $step,
+        PipelineStep $step,
         $input = null, $context = null
     ) : array
     {
@@ -141,7 +141,7 @@ class ProcessManager implements ProcessManagerInterface
 
 
     protected function doPipeMiddleware(
-        PipelineProcessInterface $process, Pipe $pipe,
+        PipelineProcessInterface $process, PipelinePipe $pipe,
         $input = null, $context = null
     ) : ?array
     {
@@ -165,7 +165,7 @@ class ProcessManager implements ProcessManagerInterface
     }
 
     protected function doPipeAction(
-        PipelineProcessInterface $process, Pipe $pipe,
+        PipelineProcessInterface $process, PipelinePipe $pipe,
         $input = null, $context = null
     ) : ?array
     {
@@ -200,7 +200,7 @@ class ProcessManager implements ProcessManagerInterface
     }
 
     protected function doPipeFallback(
-        PipelineProcessInterface $process, Pipe $pipe,
+        PipelineProcessInterface $process, PipelinePipe $pipe,
         $input = null, $context = null
     ) : ?array
     {

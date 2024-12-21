@@ -2,21 +2,21 @@
 
 namespace Gzhegow\Pipeline\Chain;
 
-use Gzhegow\Pipeline\Pipe\Pipe;
+use Gzhegow\Pipeline\Pipe\PipelinePipe;
 use Gzhegow\Pipeline\Exception\LogicException;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
 
-class MiddlewareChain extends AbstractChain
+class MiddlewareChain extends AbstractPipelineChain
 {
     /**
-     * @var Pipe<GenericHandlerMiddleware>
+     * @var PipelinePipe<GenericHandlerMiddleware>
      */
     protected $pipe;
 
 
-    public function __construct(PipelineFactoryInterface $factory, Pipe $pipe)
+    public function __construct(PipelineFactoryInterface $factory, PipelinePipe $pipe)
     {
         parent::__construct($factory);
 
@@ -34,9 +34,9 @@ class MiddlewareChain extends AbstractChain
 
 
     /**
-     * @return Pipe<GenericHandlerMiddleware>
+     * @return PipelinePipe<GenericHandlerMiddleware>
      */
-    public function getPipe() : Pipe
+    public function getPipe() : PipelinePipe
     {
         return $this->pipe;
     }

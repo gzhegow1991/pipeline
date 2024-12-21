@@ -2,16 +2,16 @@
 
 namespace Gzhegow\Pipeline\Chain;
 
-use Gzhegow\Pipeline\Pipe\Pipe;
+use Gzhegow\Pipeline\Pipe\PipelinePipe;
 use Gzhegow\Pipeline\Handler\GenericHandler;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 
 
-interface ChainInterface
+interface PipelineChainInterface
 {
     /**
-     * @return Pipe<ChainInterface|GenericHandler>[]
+     * @return PipelinePipe<PipelineChainInterface|GenericHandler>[]
      */
     public function getPipes() : array;
 
@@ -23,7 +23,7 @@ interface ChainInterface
 
     public function startPipeline() : PipelineChain;
 
-    public function endPipeline() : ChainInterface;
+    public function endPipeline() : PipelineChainInterface;
 
 
     /**
@@ -33,7 +33,7 @@ interface ChainInterface
 
     public function startMiddleware($from) : MiddlewareChain;
 
-    public function endMiddleware() : ChainInterface;
+    public function endMiddleware() : PipelineChainInterface;
 
 
     /**

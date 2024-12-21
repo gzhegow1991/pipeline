@@ -44,10 +44,10 @@ set_exception_handler(function (\Throwable $e) {
 
         echo \Gzhegow\Lib\Lib::debug_var_dump($current) . PHP_EOL;
         echo $current->getMessage() . PHP_EOL;
-        
+
         $file = $current->getFile() ?? '{file}';
         $line = $current->getLine() ?? '{line}';
-        echo "{$file} : {$line}" . PHP_EOL;        
+        echo "{$file} : {$line}" . PHP_EOL;
 
         foreach ( $e->getTrace() as $traceItem ) {
             $file = $traceItem[ 'file' ] ?? '{file}';
@@ -90,7 +90,7 @@ function _assert_output(
 {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
-    \Gzhegow\Lib\Lib::assert_stdout([ STDOUT ]);
+    \Gzhegow\Lib\Lib::assert_resource_static(STDOUT);
     \Gzhegow\Lib\Lib::assert_output($trace, $fn, $expect);
 }
 
@@ -102,11 +102,11 @@ $factory = new \Gzhegow\Pipeline\PipelineFactory();
 
 // > создаем процессор
 // > его задача выполнять конечные функции, предоставляя зависимости для их вызова (например, при использовании контейнера DI)
-$processor = new \Gzhegow\Pipeline\Processor\Processor($factory);
+$processor = new \Gzhegow\Pipeline\Processor\PipelineProcessor($factory);
 
 // > создаем менеджер процессов
 // > его задача выполнять шаги процессов, созданных на основе цепочек, и передавать управление процессору
-$processManager = new \Gzhegow\Pipeline\ProcessManager\ProcessManager(
+$processManager = new \Gzhegow\Pipeline\ProcessManager\PipelineProcessManager(
     $factory,
     $processor
 );
@@ -136,8 +136,8 @@ $fn = function () use ($factory, $processManager) {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo2ndAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::class)
     ;
 
     // > устанавливаем стартовый $input, который будет меняться при прохождении по цепочке на результат прошлого действия
@@ -178,8 +178,8 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
     ;
 
     $myInput = 'any data 2';
@@ -210,8 +210,8 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoLogicExceptionAction::class)
-        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoLogicExceptionFallback::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoLogicExceptionAction::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::class)
     ;
 
     $myInput = null;
@@ -243,7 +243,7 @@ $fn = function () {
     // > добавляем действия в конвеер
     $pipeline
         ->throwable(new \LogicException('Hello, World!'))
-        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoLogicExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::class)
     ;
 
     $myInput = null;
@@ -273,9 +273,9 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoExceptionAction::class)
-        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoSkipFallback::class)
-        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoThrowableFallback::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoSkipFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoThrowableFallback::class)
     ;
 
     $myInput = null;
@@ -307,8 +307,8 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoExceptionAction::class)
-        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoLogicExceptionFallback::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::class)
     ;
 
     $myInput = null;
@@ -352,15 +352,15 @@ $fn = function () use ($factory) {
     $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline();
 
     // > создаем посредник
-    $middleware = $factory->newMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class);
+    $middleware = $factory->newMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class);
 
     // > вызывать можно и статически, если перед этим сохранили фасад
     // $middleware = \Gzhegow\Pipeline\PipelineFacade::middleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class);
 
     // > добавлять вложенные pipeline/middleware можно также используя синтаксис ->startX()/->endX()
     $middleware
-        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo2ndMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::class)
         ->endMiddleware()
     ;
 
@@ -400,12 +400,12 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipeline
-        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class)
-        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\DemoOmitMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo2ndAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo3rdAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo4thAction::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\DemoOmitMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo3rdAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo4thAction::class)
         ->endMiddleware()
         ->endMiddleware()
     ;
@@ -440,8 +440,8 @@ $fn = function () {
 
     // > добавляем действия в конвеер
     $pipelineChild
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
     ;
 
     // > создаем родительский конвеер
@@ -451,7 +451,7 @@ $fn = function () {
     // > при добавлении конвееров они будут склонированы, то есть один и тот же экземпляр может быть добавлен сколько угодно раз
     $pipeline
         ->pipeline($pipelineChild)                                           // этот конвеер просто передаст $result дальше
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class) // на этом этапе результат будет заменен
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::class) // на этом этапе результат будет заменен
         ->pipeline($pipelineChild)                                           // этот конвеер передаст измененный $result дальше
     ;
 
@@ -483,10 +483,10 @@ $fn = function () {
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
-        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class)
-        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo2ndMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo2ndAction::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::class)
         ->endMiddleware()
         ->endMiddleware()
     ;
@@ -520,12 +520,12 @@ $fn = function () {
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
-        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class)
-        ->startMiddleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo2ndMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoLogicExceptionAction::class)
-        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoRuntimeExceptionFallback::class)
-        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoLogicExceptionFallback::class)
-        ->fallback(\Gzhegow\Pipeline\Demo\HandlerFallback\DemoThrowableFallback::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoLogicExceptionAction::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoRuntimeExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoThrowableFallback::class)
         ->endMiddleware()
         ->endMiddleware()
     ;
@@ -559,9 +559,9 @@ $fn = function () {
     _dump('[ TEST 12 ]');
 
     // > добавляем действия в конвеер 2 уровня
-    $middleware2nd = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo2ndMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo3rdAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo4thAction::class)
+    $middleware2nd = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo3rdAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo4thAction::class)
     ;
 
     $pipeline2nd = \Gzhegow\Pipeline\Pipeline::pipeline()
@@ -569,10 +569,10 @@ $fn = function () {
     ;
 
     // > добавляем действия (в том числе дочерние конвееры) в конвеер 1 уровня
-    $middleware1st = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Demo\HandlerMiddleware\Demo1stMiddleware::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo1stAction::class)
+    $middleware1st = \Gzhegow\Pipeline\Pipeline::middleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::class)
         ->pipeline($pipeline2nd)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\Demo2ndAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::class)
     ;
 
     $pipeline1st = \Gzhegow\Pipeline\Pipeline::pipeline()
@@ -581,15 +581,15 @@ $fn = function () {
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
     $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
         ->pipeline($pipeline1st)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
         ->pipeline($pipeline1st)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
         ->pipeline($pipeline1st)
-        ->action(\Gzhegow\Pipeline\Demo\HandlerAction\DemoPassInputToResultAction::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::class)
     ;
 
     $myInput = null;

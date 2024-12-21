@@ -3,13 +3,13 @@
 namespace Gzhegow\Pipeline;
 
 use Gzhegow\Lib\Lib;
-use Gzhegow\Pipeline\Pipe\Pipe;
+use Gzhegow\Pipeline\Pipe\PipelinePipe;
 use Gzhegow\Pipeline\Process\PipelineProcess;
 use Gzhegow\Pipeline\Exception\LogicException;
 use Gzhegow\Pipeline\Process\MiddlewareProcess;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
-use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
+use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
 use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
@@ -27,7 +27,7 @@ class PipelineFactory implements PipelineFactoryInterface
     {
         $genericMiddleware = GenericHandlerMiddleware::from($from);
 
-        $pipe = Pipe::from($genericMiddleware);
+        $pipe = PipelinePipe::from($genericMiddleware);
 
         $middleware = new MiddlewareChain($this, $pipe);
 
@@ -36,7 +36,7 @@ class PipelineFactory implements PipelineFactoryInterface
 
 
     public function newMiddlewareProcess(
-        ProcessManagerInterface $processManager,
+        PipelineProcessManagerInterface $processManager,
         //
         MiddlewareChain $middleware
     ) : ?MiddlewareProcess
@@ -52,7 +52,7 @@ class PipelineFactory implements PipelineFactoryInterface
     }
 
     public function newPipelineProcess(
-        ProcessManagerInterface $processManager,
+        PipelineProcessManagerInterface $processManager,
         //
         PipelineChain $pipeline
     ) : ?PipelineProcess
@@ -68,7 +68,7 @@ class PipelineFactory implements PipelineFactoryInterface
     }
 
 
-    public function newProcessFrom(ProcessManagerInterface $processManager, $from) : ?PipelineProcessInterface
+    public function newProcessFrom(PipelineProcessManagerInterface $processManager, $from) : ?PipelineProcessInterface
     {
         $process = null
             ?? $this->newProcessFromPipeline($processManager, $from)
@@ -86,7 +86,7 @@ class PipelineFactory implements PipelineFactoryInterface
         return $process;
     }
 
-    public function newProcessFromMiddleware(ProcessManagerInterface $processManager, $middleware) : ?MiddlewareProcess
+    public function newProcessFromMiddleware(PipelineProcessManagerInterface $processManager, $middleware) : ?MiddlewareProcess
     {
         if (! ($middleware instanceof MiddlewareChain)) {
             return null;
@@ -97,7 +97,7 @@ class PipelineFactory implements PipelineFactoryInterface
         return $process;
     }
 
-    public function newProcessFromPipeline(ProcessManagerInterface $processManager, $pipeline) : ?PipelineProcess
+    public function newProcessFromPipeline(PipelineProcessManagerInterface $processManager, $pipeline) : ?PipelineProcess
     {
         if (! ($pipeline instanceof PipelineChain)) {
             return null;

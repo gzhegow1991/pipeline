@@ -5,7 +5,7 @@ namespace Gzhegow\Pipeline\ProcessManager;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 
 
-interface ProcessManagerInterface
+interface PipelineProcessManagerInterface
 {
     public function run($pipeline, $input = null, $context = null);
 

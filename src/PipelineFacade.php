@@ -4,7 +4,7 @@ namespace Gzhegow\Pipeline;
 
 use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
-use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
+use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
 use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
 
 
@@ -16,7 +16,7 @@ class PipelineFacade implements PipelineFacadeInterface
     protected $factory;
 
     /**
-     * @var ProcessManagerInterface
+     * @var PipelineProcessManagerInterface
      */
     protected $processManager;
 
@@ -24,7 +24,7 @@ class PipelineFacade implements PipelineFacadeInterface
     public function __construct(
         PipelineFactoryInterface $factory,
         //
-        ProcessManagerInterface $processManager
+        PipelineProcessManagerInterface $processManager
     )
     {
         $this->factory = $factory;

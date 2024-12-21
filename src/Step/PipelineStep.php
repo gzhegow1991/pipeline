@@ -2,13 +2,13 @@
 
 namespace Gzhegow\Pipeline\Step;
 
-use Gzhegow\Pipeline\Pipe\Pipe;
+use Gzhegow\Pipeline\Pipe\PipelinePipe;
+use Gzhegow\Pipeline\Chain\PipelineChainInterface;
 use Gzhegow\Pipeline\Handler\GenericHandler;
-use Gzhegow\Pipeline\Chain\ChainInterface;
 use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 
 
-class Step
+class PipelineStep
 {
     /**
      * @var PipelineProcessInterface
@@ -16,7 +16,7 @@ class Step
     public $process;
 
     /**
-     * @var Pipe<ChainInterface|GenericHandler>
+     * @var PipelinePipe<PipelineChainInterface|GenericHandler>
      */
     public $pipe;
 }

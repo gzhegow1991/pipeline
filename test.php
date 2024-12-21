@@ -70,7 +70,7 @@ function _assert_output(
 {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
-    \Gzhegow\Lib\Lib::assert_stdout([ STDOUT ]);
+    \Gzhegow\Lib\Lib::assert_resource_static(STDOUT);
     \Gzhegow\Lib\Lib::assert_output($trace, $fn, $expect);
 }
 
@@ -82,11 +82,11 @@ $factory = new \Gzhegow\Pipeline\PipelineFactory();
 
 // > создаем процессор
 // > его задача выполнять конечные функции, предоставляя зависимости для их вызова (например, при использовании контейнера DI)
-$processor = new \Gzhegow\Pipeline\Processor\Processor($factory);
+$processor = new \Gzhegow\Pipeline\Processor\PipelineProcessor($factory);
 
 // > создаем менеджер процессов
 // > его задача выполнять шаги процессов, созданных на основе цепочек, и передавать управление процессору
-$processManager = new \Gzhegow\Pipeline\ProcessManager\ProcessManager(
+$processManager = new \Gzhegow\Pipeline\ProcessManager\PipelineProcessManager(
     $factory,
     $processor
 );

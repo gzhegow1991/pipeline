@@ -3,6 +3,6 @@
 namespace Gzhegow\Pipeline\Chain;
 
 
-class PipelineChain extends AbstractChain
+class PipelineChain extends AbstractPipelineChain
 {
 }

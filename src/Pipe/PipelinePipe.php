@@ -4,7 +4,7 @@ namespace Gzhegow\Pipeline\Pipe;
 
 use Gzhegow\Lib\Lib;
 use Gzhegow\Pipeline\Chain\PipelineChain;
-use Gzhegow\Pipeline\Chain\ChainInterface;
+use Gzhegow\Pipeline\Chain\PipelineChainInterface;
 use Gzhegow\Pipeline\Chain\MiddlewareChain;
 use Gzhegow\Pipeline\Handler\GenericHandler;
 use Gzhegow\Pipeline\Exception\LogicException;
@@ -14,9 +14,9 @@ use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
 
 
 /**
- * @template-covariant T of ChainInterface|GenericHandler
+ * @template-covariant T of PipelineChainInterface|GenericHandler
  */
-class Pipe
+class PipelinePipe
 {
     /**
      * @var PipelineChain
@@ -46,7 +46,11 @@ class Pipe
 
     public static function from($from) : self
     {
-        $instance = static::tryFrom($from);
+        $instance = static::tryFrom($from, $error);
+
+        if (null === $instance) {
+            throw $error;
+        }
 
         return $instance;
     }

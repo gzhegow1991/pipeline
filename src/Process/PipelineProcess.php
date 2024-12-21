@@ -4,7 +4,7 @@ namespace Gzhegow\Pipeline\Process;
 
 use Gzhegow\Pipeline\Chain\PipelineChain;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
-use Gzhegow\Pipeline\ProcessManager\ProcessManagerInterface;
+use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
 
 
 class PipelineProcess extends AbstractProcess
@@ -17,7 +17,7 @@ class PipelineProcess extends AbstractProcess
 
     public function __construct(
         PipelineFactoryInterface $factory,
-        ProcessManagerInterface $processManager,
+        PipelineProcessManagerInterface $processManager,
         //
         PipelineChain $pipeline
     )
