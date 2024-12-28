@@ -4,10 +4,10 @@ namespace Gzhegow\Pipeline\Pipe;
 
 use Gzhegow\Lib\Lib;
 use Gzhegow\Pipeline\Chain\PipelineChain;
-use Gzhegow\Pipeline\Chain\PipelineChainInterface;
 use Gzhegow\Pipeline\Chain\MiddlewareChain;
 use Gzhegow\Pipeline\Handler\GenericHandler;
 use Gzhegow\Pipeline\Exception\LogicException;
+use Gzhegow\Pipeline\Chain\PipelineChainInterface;
 use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
 use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
 use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
@@ -65,7 +65,7 @@ class PipelinePipe
     {
         $last = null;
 
-        Lib::php_errors_start($b);
+        Lib::php()->errors_start($b);
 
         $instance = null
             ?? static::tryFromInstance($from)
@@ -75,7 +75,7 @@ class PipelinePipe
             ?? static::tryFromHandlerMiddleware($from)
             ?? static::tryFromPipeline($from);
 
-        $errors = Lib::php_errors_end($b);
+        $errors = Lib::php()->errors_end($b);
 
         if (null === $instance) {
             foreach ( $errors as $error ) {
@@ -93,7 +93,7 @@ class PipelinePipe
     public static function tryFromInstance($instance) // : ?static
     {
         if (! ($instance instanceof static)) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be instance of: ' . static::class, $instance ]
             );
         }
@@ -107,7 +107,7 @@ class PipelinePipe
     public static function tryFromMiddleware($middleware) // : ?static
     {
         if (! ($middleware instanceof MiddlewareChain)) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be instance of: ' . MiddlewareChain::class, $middleware ]
             );
         }
@@ -124,7 +124,7 @@ class PipelinePipe
     public static function tryFromHandlerAction($handlerAction) // : ?static
     {
         if (! ($handlerAction instanceof GenericHandlerAction)) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be instance of: ' . GenericHandlerAction::class, $handlerAction ]
             );
         }
@@ -141,7 +141,7 @@ class PipelinePipe
     public static function tryFromHandlerFallback($handlerFallback) // : ?static
     {
         if (! ($handlerFallback instanceof GenericHandlerFallback)) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be instance of: ' . GenericHandlerFallback::class, $handlerFallback ]
             );
         }
@@ -158,7 +158,7 @@ class PipelinePipe
     public static function tryFromHandlerMiddleware($handlerMiddleware) // : ?static
     {
         if (! ($handlerMiddleware instanceof GenericHandlerMiddleware)) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be instance of: ' . GenericHandlerMiddleware::class, $handlerMiddleware ]
             );
         }
@@ -175,7 +175,7 @@ class PipelinePipe
     public static function tryFromPipeline($pipeline) // : ?static
     {
         if (! ($pipeline instanceof PipelineChain)) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be instance of: ' . PipelineChain::class, $pipeline ]
             );
         }

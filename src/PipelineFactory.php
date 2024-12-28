@@ -111,7 +111,7 @@ class PipelineFactory implements PipelineFactoryInterface
 
     public function newHandlerObject(string $class, array $parameters = []) : object
     {
-        [ $args ] = Lib::array_kwargs($parameters);
+        [ $args ] = Lib::arr()->kwargs($parameters);
 
         $object = new $class(...$args);
 

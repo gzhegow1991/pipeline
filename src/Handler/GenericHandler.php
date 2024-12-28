@@ -78,7 +78,7 @@ abstract class GenericHandler implements \Serializable
     {
         $last = null;
 
-        Lib::php_errors_start($b);
+        Lib::php()->errors_start($b);
 
         $instance = null
             ?? static::tryFromInstance($from)
@@ -87,7 +87,7 @@ abstract class GenericHandler implements \Serializable
             ?? static::tryFromInvokable($from)
             ?? static::tryFromFunction($from);
 
-        $errors = Lib::php_errors_end($b);
+        $errors = Lib::php()->errors_end($b);
 
         if (null === $instance) {
             foreach ( $errors as $error ) {
@@ -105,7 +105,7 @@ abstract class GenericHandler implements \Serializable
     protected static function tryFromInstance($instance) // : ?static
     {
         if (! is_a($instance, static::class)) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be instance of: ' . static::class, $instance ]
             );
         }
@@ -119,7 +119,7 @@ abstract class GenericHandler implements \Serializable
     protected static function tryFromClosure($closure) // : ?static
     {
         if (! is_a($closure, \Closure::class)) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be instance of: ' . \Closure::class, $closure ]
             );
         }
@@ -135,8 +135,8 @@ abstract class GenericHandler implements \Serializable
      */
     protected static function tryFromMethod($method) // : ?static
     {
-        if (! Lib::php_method_exists($method, null, $methodArray)) {
-            return Lib::php_error(
+        if (! Lib::php()->method_exists($method, null, $methodArray)) {
+            return Lib::php()->error(
                 [ 'The `from` should be existing method', $method ]
             );
         }
@@ -174,7 +174,7 @@ abstract class GenericHandler implements \Serializable
             $instance->invokable = $invokable;
             $instance->invokableObject = $invokable;
 
-        } elseif (null !== ($_invokableClass = Lib::parse_string_not_empty($invokable))) {
+        } elseif (null !== ($_invokableClass = Lib::parse()->string_not_empty($invokable))) {
             if (! class_exists($_invokableClass)) {
                 return null;
             }
@@ -189,7 +189,7 @@ abstract class GenericHandler implements \Serializable
         }
 
         if (null === $instance) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be existing invokable class or object', $invokable ]
             );
         }
@@ -202,14 +202,14 @@ abstract class GenericHandler implements \Serializable
      */
     protected static function tryFromFunction($function) // : ?static
     {
-        if (null === ($_function = Lib::parse_string_not_empty($function))) {
-            return Lib::php_error(
+        if (null === ($_function = Lib::parse()->string_not_empty($function))) {
+            return Lib::php()->error(
                 [ 'The `from` should be existing function name', $function ]
             );
         }
 
         if (! function_exists($_function)) {
-            return Lib::php_error(
+            return Lib::php()->error(
                 [ 'The `from` should be existing function name', $_function ]
             );
         }
@@ -264,7 +264,7 @@ abstract class GenericHandler implements \Serializable
                 ?? $this->invokable
                 ?? $this->function;
 
-            $key = Lib::debug_var_dump($key);
+            $key = Lib::debug()->var_dump($key);
 
             $this->key = $key;
         }

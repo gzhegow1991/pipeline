@@ -139,7 +139,7 @@ class PipelineProcessor implements PipelineProcessorInterface
 
     protected function callUserFuncArray($fn, array $args) // : mixed
     {
-        [ $list ] = Lib::array_kwargs($args);
+        [ $list ] = Lib::arr()->kwargs($args);
 
         $result = call_user_func_array($fn, $list);
 
@@ -181,7 +181,7 @@ class PipelineProcessor implements PipelineProcessorInterface
             throw new RuntimeException(
                 [
                     'Unable to extract callable from handler.'
-                    . ' / Handler: ' . Lib::debug_var_dump($handler),
+                    . ' / Handler: ' . Lib::debug()->var_dump($handler),
                     $handler,
                 ]
             );
