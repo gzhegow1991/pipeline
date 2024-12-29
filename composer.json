@@ -2,6 +2,7 @@
     "name": "gzhegow/pipeline",
     "type": "library",
     "version": "1.7.0",
+    "license": "MIT",
 
     "minimum-stability": "dev",
     "prefer-stable": true,
