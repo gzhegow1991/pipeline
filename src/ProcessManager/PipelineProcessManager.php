@@ -79,12 +79,9 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
 
         if ($throwables = $process->getThrowables()) {
             $e = new PipelineException(
-                'Unhandled exception occured during processing pipeline', -1
+                'Unhandled exception occured during processing pipeline', -1,
+                ...$throwables
             );
-
-            foreach ( $throwables as $throwable ) {
-                $e->addPrevious($throwable);
-            }
 
             throw $e;
         }

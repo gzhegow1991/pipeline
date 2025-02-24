@@ -135,7 +135,7 @@ abstract class GenericHandler implements \Serializable
      */
     protected static function tryFromMethod($method) // : ?static
     {
-        if (! Lib::php()->method_exists($method, null, $methodArray)) {
+        if (! Lib::php()->type_method_string($methodString, $method, [ &$methodArray ])) {
             return Lib::php()->error(
                 [ 'The `from` should be existing method', $method ]
             );

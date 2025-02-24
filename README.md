@@ -36,63 +36,28 @@ ini_set('memory_limit', '32M');
 
 
 // > добавляем несколько функция для тестирования
-function _debug(...$values) : string
+function _values($separator = null, ...$values) : string
 {
-    $lines = [];
-    foreach ( $values as $value ) {
-        $lines[] = \Gzhegow\Lib\Lib::debug()->type($value);
-    }
-
-    $ret = implode(' | ', $lines) . PHP_EOL;
-
-    echo $ret;
-
-    return $ret;
+    return \Gzhegow\Lib\Lib::debug()->values($separator, [], ...$values);
 }
 
-function _dump(...$values) : string
+function _print(...$values) : void
 {
-    $lines = [];
-    foreach ( $values as $value ) {
-        $lines[] = \Gzhegow\Lib\Lib::debug()->value($value);
-    }
-
-    $ret = implode(' | ', $lines) . PHP_EOL;
-
-    echo $ret;
-
-    return $ret;
+    echo _values(' | ', ...$values) . PHP_EOL;
 }
 
-function _dump_array($value, int $maxLevel = null, bool $multiline = false) : string
-{
-    $content = $multiline
-        ? \Gzhegow\Lib\Lib::debug()->array_multiline($value, $maxLevel)
-        : \Gzhegow\Lib\Lib::debug()->array($value, $maxLevel);
-
-    $ret = $content . PHP_EOL;
-
-    echo $ret;
-
-    return $ret;
-}
-
-function _assert_output(
-    \Closure $fn, string $expect = null
+function _assert_stdout(
+    \Closure $fn, array $fnArgs = [],
+    string $expectedStdout = null
 ) : void
 {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
-    \Gzhegow\Lib\Lib::assert()->output($trace, $fn, $expect);
-}
-
-function _assert_microtime(
-    \Closure $fn, float $expectMax = null, float $expectMin = null
-) : void
-{
-    $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
-
-    \Gzhegow\Lib\Lib::assert()->microtime($trace, $fn, $expectMax, $expectMin);
+    \Gzhegow\Lib\Lib::test()->assertStdout(
+        $trace,
+        $fn, $fnArgs,
+        $expectedStdout
+    );
 }
 
 
@@ -127,7 +92,7 @@ $facade = new \Gzhegow\Pipeline\PipelineFacade(
 // >>> TEST
 // > цепочка может состоять из одного или нескольких действий
 $fn = function () use ($factory, $processManager) {
-    _dump('[ TEST 1 ]');
+    _print('[ TEST 1 ]');
     echo PHP_EOL;
 
     // > создаем конвеер
@@ -157,9 +122,9 @@ $fn = function () use ($factory, $processManager) {
     // $result = $processManager->run($pipeline, $myInput, $myContext); // то же самое
     // $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext); // то же самое
 
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 1 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
@@ -171,7 +136,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
 // >>> TEST
 // > действия могут передавать результат выполнения из одного в другое
 $fn = function () {
-    _dump('[ TEST 2 ]');
+    _print('[ TEST 2 ]');
     echo PHP_EOL;
 
     // > создаем конвеер
@@ -188,9 +153,9 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 2 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
@@ -201,7 +166,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 // >>> TEST
 // > выброшенную ошибку можно превратить в результат используя fallback
 $fn = function () {
-    _dump('[ TEST 3 ]');
+    _print('[ TEST 3 ]');
     echo PHP_EOL;
 
     // > создаем конвеер
@@ -218,9 +183,9 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 3 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoLogicExceptionAction::__invoke
@@ -231,7 +196,7 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 // >>> TEST
 // > цепочка может начинаться с исключения, которое нужно обработать
 $fn = function () {
-    _dump('[ TEST 4 ]');
+    _print('[ TEST 4 ]');
     echo PHP_EOL;
 
     // > создаем конвеер
@@ -248,9 +213,9 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 4 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
@@ -260,7 +225,7 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 // >>> TEST
 // > если fallback возвращает NULL, то система попробует поймать исключение следующим fallback
 $fn = function () {
-    _dump('[ TEST 5 ]');
+    _print('[ TEST 5 ]');
     echo PHP_EOL;
 
     // > создаем конвеер
@@ -278,9 +243,9 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 5 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::__invoke
@@ -292,7 +257,7 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoThrowableFallback::__invoke
 // >>> TEST
 // > если ни один из fallback не обработает ошибку, ошибка будет выброшена наружу
 $fn = function () {
-    _dump('[ TEST 6 ]');
+    _print('[ TEST 6 ]');
     echo PHP_EOL;
 
     // > создаем конвеер
@@ -313,15 +278,15 @@ $fn = function () {
         $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     }
     catch ( \Gzhegow\Pipeline\Exception\Runtime\PipelineException $e ) {
-        _dump('[ CATCH ]', get_class($e), $e->getMessage());
+        _print('[ CATCH ]', get_class($e), $e->getMessage());
 
         foreach ( $e->getPreviousList() as $ee ) {
-            _dump('[ CATCH ]', get_class($ee), $ee->getMessage());
+            _print('[ CATCH ]', get_class($ee), $ee->getMessage());
         }
     }
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 6 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::__invoke
@@ -336,7 +301,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::__invoke
 // > + они как события, могут выполнить дополнительные действия или подготовить входные данные следуюших шагов
 // > если необходимо, чтобы middleware оборачивал только некоторые действия, то их следует обернуть в отдельный Pipeline
 $fn = function () use ($factory) {
-    _dump('[ TEST 7 ]');
+    _print('[ TEST 7 ]');
     echo PHP_EOL;
 
     // > создаем конвеер
@@ -365,9 +330,9 @@ $fn = function () use ($factory) {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 7 ]"
 
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -381,7 +346,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
 // >>> TEST
 // > middleware может предотвратить выполнение цепочки (то есть уже написанный код можно отменить фильтром, не редактируя его)
 $fn = function () {
-    _dump('[ TEST 8 ]');
+    _print('[ TEST 8 ]');
     echo PHP_EOL;
 
     // > создаем конвеер
@@ -404,9 +369,9 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 8 ]"
 
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -419,7 +384,7 @@ _assert_output($fn, '
 // >>> TEST
 // > цепочка может состоять даже из цепочек
 $fn = function () {
-    _dump('[ TEST 9 ]');
+    _print('[ TEST 9 ]');
     echo PHP_EOL;
 
     // > создаем дочерний конвеер
@@ -447,9 +412,9 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 9 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
@@ -463,7 +428,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 // >>> TEST
 // > может состоять из middleware вложенных друг в друга
 $fn = function () {
-    _dump('[ TEST 10 ]');
+    _print('[ TEST 10 ]');
     echo PHP_EOL;
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
@@ -481,9 +446,9 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 10 ]"
 
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -498,7 +463,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
 // >>> TEST
 // > что не отменяет возможности, что в одном из действий произойдет ошибка, которая должна быть поймана, а цепочка - продолжиться
 $fn = function () {
-    _dump('[ TEST 11 ]');
+    _print('[ TEST 11 ]');
     echo PHP_EOL;
 
     // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
@@ -518,9 +483,9 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 11 ]"
 
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -536,7 +501,7 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 // > а вообще, даже из цепочек-в-цепочках может состоять
 // > вообще, этот конструктор нужен, чтобы ограничивать действие middleware только на несколько действий, а не на все
 $fn = function () {
-    _dump('[ TEST 12 ]');
+    _print('[ TEST 12 ]');
     echo PHP_EOL;
 
     // > добавляем действия в конвеер 2 уровня
@@ -578,9 +543,9 @@ $fn = function () {
 
     // > запускаем конвеер
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
-    _dump('[ RESULT ]', $result);
+    _print('[ RESULT ]', $result);
 };
-_assert_output($fn, '
+_assert_stdout($fn, [], '
 "[ TEST 12 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
