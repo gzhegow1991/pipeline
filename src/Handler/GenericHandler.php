@@ -308,6 +308,11 @@ abstract class GenericHandler implements \Serializable
         return $this->isClosure;
     }
 
+    public function hasClosureObject() : ?\Closure
+    {
+        return $this->closureObject;
+    }
+
     public function getClosureObject() : \Closure
     {
         return $this->closureObject;
@@ -347,6 +352,11 @@ abstract class GenericHandler implements \Serializable
         return $this->methodObject;
     }
 
+
+    public function hasMethodName() : ?string
+    {
+        return $this->methodName;
+    }
 
     public function getMethodName() : string
     {
@@ -395,6 +405,14 @@ abstract class GenericHandler implements \Serializable
     public function isFunction() : bool
     {
         return $this->isFunction;
+    }
+
+    /**
+     * @return callable|string|null
+     */
+    public function hasFunctionString() : ?string
+    {
+        return $this->functionString;
     }
 
     /**
