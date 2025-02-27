@@ -290,6 +290,7 @@ _assert_stdout($fn, [], '
 "[ TEST 6 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Runtime\PipelineException" | "Unhandled exception occured during processing pipeline"
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception" | "Hello, World!"
 "[ RESULT ]" | NULL
@@ -491,6 +492,7 @@ _assert_stdout($fn, [], '
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
 Gzhegow\Pipeline\Demo\Handler\Action\DemoLogicExceptionAction::__invoke
+Gzhegow\Pipeline\Demo\Handler\Fallback\DemoRuntimeExceptionFallback::__invoke
 Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 @after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
 @after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -579,5 +581,44 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
 @after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke result."
+');
+
+
+// >>> TEST
+// > исключение возникло в глубине цепочки и не было обработано, но в конце добавлены Fallback, которые его поймают
+$fn = function () {
+    _print('[ TEST 13 ]');
+    echo PHP_EOL;
+
+    // > добавляем действия (в том числе дочерние конвееры) в родительский конвеер
+    $pipeline = \Gzhegow\Pipeline\Pipeline::pipeline()
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class)
+        ->startMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::class)
+        ->action(\Gzhegow\Pipeline\Demo\Handler\Action\DemoLogicExceptionAction::class)
+        ->endMiddleware()
+        ->endMiddleware()
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoRuntimeExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::class)
+        ->fallback(\Gzhegow\Pipeline\Demo\Handler\Fallback\DemoThrowableFallback::class)
+    ;
+
+    $myInput = null;
+    $myContext = null;
+
+    // > запускаем конвеер
+    $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
+    _print('[ RESULT ]', $result);
+};
+_assert_stdout($fn, [], '
+"[ TEST 13 ]"
+
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+@before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Action\DemoLogicExceptionAction::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo2ndMiddleware::__invoke
+@after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
+Gzhegow\Pipeline\Demo\Handler\Fallback\DemoRuntimeExceptionFallback::__invoke
+Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
+"[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ');
 ```
