@@ -10,7 +10,7 @@ class DemoExceptionAction
     /**
      * @throws Exception
      */
-    public function __invoke($input = null, $context = null, $state = null) // : mixed
+    public function __invoke($input = null, $context = null) // : mixed
     {
         echo __METHOD__ . PHP_EOL;
 

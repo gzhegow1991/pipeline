@@ -2,6 +2,7 @@
 
 namespace Gzhegow\Pipeline\Process;
 
+use Gzhegow\Pipeline\Pipe\PipelinePipe;
 use Gzhegow\Pipeline\Chain\PipelineChain;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
@@ -10,9 +11,23 @@ use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
 class PipelineProcess extends AbstractProcess
 {
     /**
+     * @var PipelinePipe[]
+     */
+    protected $pipes = [];
+    /**
+     * @var \Throwable[]
+     */
+    protected $throwables = [];
+
+    /**
      * @var PipelineChain
      */
     protected $pipeline;
+
+    /**
+     * @var PipelineProcessInterface
+     */
+    protected $childProcess;
 
 
     public function __construct(

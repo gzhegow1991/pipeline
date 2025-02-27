@@ -5,14 +5,6 @@ namespace Gzhegow\Pipeline\Process;
 
 interface PipelineProcessInterface
 {
-    public function getCurrentNestedProcess() : ?PipelineProcessInterface;
-
-    /**
-     * @return static
-     */
-    public function setCurrentNestedProcess(?PipelineProcessInterface $process); // : static
-
-
     public function reset() : void;
 
     public function run($input = null, $context = null);  // : mixed

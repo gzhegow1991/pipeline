@@ -12,19 +12,33 @@ use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
 class MiddlewareProcess extends AbstractProcess
 {
     /**
+     * @var bool
+     */
+    protected $isNextCalled = false;
+
+    /**
+     * @var PipelinePipe
+     */
+    protected $pipeMain;
+
+    /**
+     * @var PipelinePipe[]
+     */
+    protected $pipes = [];
+    /**
+     * @var \Throwable[]
+     */
+    protected $throwables = [];
+
+    /**
      * @var MiddlewareChain
      */
     protected $middleware;
 
     /**
-     * @var PipelinePipe
+     * @var PipelineProcessInterface
      */
-    protected $pipe;
-
-    /**
-     * @var bool
-     */
-    protected $isNextCalled = false;
+    protected $childProcess;
 
 
     public function __construct(
@@ -43,7 +57,7 @@ class MiddlewareProcess extends AbstractProcess
     public function isFinished() : bool
     {
         return (true
-            && (null === $this->pipe)
+            && (null === $this->pipeMain)
             && (false
                 || (! $this->isNextCalled)
                 || parent::isFinished()
@@ -54,23 +68,23 @@ class MiddlewareProcess extends AbstractProcess
 
     public function getNextStep() : ?PipelineStep
     {
-        if ($pipe = $this->pipe) {
-            $step = new PipelineStep();
-            $step->process = $this;
-            $step->pipe = $pipe;
+        if ($this->pipeMain) {
+            $pipe = $this->pipeMain;
 
-            $this->pipe = null;
+            $step = new PipelineStep($this, $pipe);
+
+            $this->pipeMain = null;
 
             return $step;
         }
 
-        if (! $this->isNextCalled) {
-            return null;
+        if ($this->isNextCalled) {
+            $step = parent::getNextStep();
+
+            return $step;
         }
 
-        $step = parent::getNextStep();
-
-        return $step;
+        return null;
     }
 
 
@@ -80,7 +94,7 @@ class MiddlewareProcess extends AbstractProcess
 
         $this->isNextCalled = false;
 
-        $this->pipe = $this->middleware->getPipe();
+        $this->pipeMain = $this->middleware->getPipe();
 
         foreach ( $this->middleware->getPipes() as $i => $pipe ) {
             $this->pipes[ $i ] = $pipe;

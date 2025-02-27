@@ -72,9 +72,6 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
     {
         $process->reset();
 
-        $state = $process->getState();
-        $state->inputOriginal = $input;
-
         $resultArray = $this->doNext($process, $input, $context);
 
         if ($throwables = $process->getThrowables()) {
@@ -116,8 +113,8 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
         $input = null, $context = null
     ) : array
     {
-        $process = $step->process;
-        $pipe = $step->pipe;
+        $process = $step->getProcess();
+        $pipe = $step->getPipe();
 
         $resultArray = null
             ?? $this->doPipeMiddleware($process, $pipe, $input, $context)
@@ -142,7 +139,7 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
         $input = null, $context = null
     ) : ?array
     {
-        if (null === ($handler = $pipe->handlerMiddleware)) {
+        if (! $handler = $pipe->hasHandlerMiddleware()) {
             return null;
         }
 
@@ -166,11 +163,13 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
         $input = null, $context = null
     ) : ?array
     {
-        if (null === ($handler = $pipe->handlerAction)) {
+        $handler = $pipe->hasHandlerAction();
+        if (null === $handler) {
             return null;
         }
 
-        if (null !== ($throwable = $process->latestThrowable())) {
+        $throwable = $process->latestThrowable();
+        if (null !== $throwable) {
             throw new RuntimeException(
                 [
                     'The `action` pipe should not be called with any throwables in stack',
@@ -201,11 +200,13 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
         $input = null, $context = null
     ) : ?array
     {
-        if (null === ($handler = $pipe->handlerFallback)) {
+        $handler = $pipe->hasHandlerFallback();
+        if (null === $handler) {
             return null;
         }
 
-        if (null === ($throwable = $process->latestThrowable())) {
+        $throwable = $process->latestThrowable();
+        if (null === $throwable) {
             throw new RuntimeException(
                 [
                     'The `fallback` pipe should not be called without any throwables in stack',

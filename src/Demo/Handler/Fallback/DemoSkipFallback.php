@@ -5,7 +5,7 @@ namespace Gzhegow\Pipeline\Demo\Handler\Fallback;
 
 class DemoSkipFallback
 {
-    public function __invoke(\Throwable $e, $input = null, $context = null, $state = null)
+    public function __invoke(\Throwable $e, $input = null, $context = null)
     {
         echo __METHOD__ . PHP_EOL;
 

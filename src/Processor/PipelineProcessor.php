@@ -36,20 +36,16 @@ class PipelineProcessor implements PipelineProcessorInterface
     {
         $callable = $this->extractHandlerCallable($middleware);
 
-        $processState = $process->getState();
-
         $callableArgs = [
             0 => $process,
             1 => $input,
             2 => $context,
-            3 => $processState,
         ];
         $callableArgs += [
             'middleware' => $middleware,
             'process'    => $process,
             'input'      => $input,
             'context'    => $context,
-            'state'      => $processState,
         ];
 
         $result = $this->callUserFuncArray(
@@ -73,19 +69,15 @@ class PipelineProcessor implements PipelineProcessorInterface
     {
         $callable = $this->extractHandlerCallable($action);
 
-        $processState = $process->getState();
-
         $callableArgs = [
             0 => $input,
             1 => $context,
-            2 => $processState,
         ];
         $callableArgs += [
             'action'  => $action,
             'process' => $process,
             'input'   => $input,
             'context' => $context,
-            'state'   => $processState,
         ];
 
         $result = $this->callUserFuncArray(
@@ -109,13 +101,10 @@ class PipelineProcessor implements PipelineProcessorInterface
     {
         $callable = $this->extractHandlerCallable($fallback);
 
-        $processState = $process->getState();
-
         $callableArgs = [
             0 => $throwable,
             1 => $input,
             2 => $context,
-            3 => $processState,
         ];
         $callableArgs += [
             'fallback'  => $fallback,
@@ -123,7 +112,6 @@ class PipelineProcessor implements PipelineProcessorInterface
             'throwable' => $throwable,
             'input'     => $input,
             'context'   => $context,
-            'state'     => $processState,
         ];
 
         $result = $this->callUserFuncArray(
@@ -154,27 +142,27 @@ class PipelineProcessor implements PipelineProcessorInterface
     {
         $fn = null;
 
-        if ($handler->closure) {
-            $fn = $handler->closure;
+        if ($handler->isClosure()) {
+            $fn = $handler->getClosureObject();
 
-        } elseif ($handler->method) {
+        } elseif ($handler->isMethod()) {
             $object = null
-                ?? $handler->methodObject
-                ?? $this->factory->newHandlerObject($handler->methodClass);
+                ?? ($handler->hasMethodObject() ? $handler->getMethodObject() : null)
+                ?? $this->factory->newHandlerObject($handler->getMethodClass());
 
-            $method = $handler->methodName;
+            $method = $handler->getMethodName();
 
             $fn = [ $object, $method ];
 
-        } elseif ($handler->invokable) {
+        } elseif ($handler->isInvokable()) {
             $object = null
-                ?? $handler->invokableObject
-                ?? $this->factory->newHandlerObject($handler->invokableClass);
+                ?? ($handler->hasInvokableObject() ? $handler->getInvokableObject() : null)
+                ?? ($this->factory->newHandlerObject($handler->getInvokableClass()));
 
             $fn = $object;
 
-        } elseif ($handler->function) {
-            $fn = $handler->function;
+        } elseif ($handler->isFunction()) {
+            $fn = $handler->getFunctionString();
         }
 
         if (! is_callable($fn)) {

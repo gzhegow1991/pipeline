@@ -4,8 +4,8 @@ namespace Gzhegow\Pipeline\Process;
 
 use Gzhegow\Pipeline\Pipe\PipelinePipe;
 use Gzhegow\Pipeline\Step\PipelineStep;
-use Gzhegow\Pipeline\ProcessManager\PipelineProcessManager;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
+use Gzhegow\Pipeline\ProcessManager\PipelineProcessManager;
 use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
 
 
@@ -22,6 +22,11 @@ abstract class AbstractProcess implements PipelineProcessInterface
     protected $processManager;
 
     /**
+     * @var PipelineProcessInterface
+     */
+    protected $childProcess;
+
+    /**
      * @var PipelinePipe[]
      */
     protected $pipes = [];
@@ -29,16 +34,6 @@ abstract class AbstractProcess implements PipelineProcessInterface
      * @var \Throwable[]
      */
     protected $throwables = [];
-
-    /**
-     * @var PipelineProcessInterface
-     */
-    protected $currentNestedProcess;
-
-    /**
-     * @var \stdClass
-     */
-    protected $state;
 
 
     public function __construct(
@@ -55,34 +50,12 @@ abstract class AbstractProcess implements PipelineProcessInterface
     }
 
 
-    public function getCurrentNestedProcess() : ?PipelineProcessInterface
-    {
-        return $this->currentNestedProcess;
-    }
-
-    /**
-     * @return static
-     */
-    public function setCurrentNestedProcess(?PipelineProcessInterface $process) // : static
-    {
-        $this->currentNestedProcess = $process;
-
-        return $this;
-    }
-
-
-    public function getState() : \stdClass
-    {
-        return $this->state;
-    }
-
-
     public function isFinished() : bool
     {
         return (true
             && (false
-                || ($this->currentNestedProcess === null)
-                || ($this->currentNestedProcess->isFinished())
+                || ($this->childProcess === null)
+                || ($this->childProcess->isFinished())
             )
             && (null === key($this->pipes))
         );
@@ -91,64 +64,101 @@ abstract class AbstractProcess implements PipelineProcessInterface
 
     public function getNextStep() : ?PipelineStep
     {
-        if (null !== $this->currentNestedProcess) {
-            if ($this->currentNestedProcess->isFinished()) {
-                $this->currentNestedProcess = null;
+        $step = null
+            ?? $this->getNextStepChildProcess()
+            ?? $this->getNextStepCurrentProcess();
 
-            } else {
-                return $this->currentNestedProcess->getNextStep();
+        return $step;
+    }
+
+    private function getNextStepChildProcess() : ?PipelineStep
+    {
+        if (null === $this->childProcess) return null;
+
+        if ($this->childProcess->isFinished()) {
+            $throwables = $this->childProcess->getThrowables();
+
+            if (count($throwables)) {
+                foreach ( $throwables as $e ) {
+                    $this->addThrowable($e);
+                }
             }
-        }
 
-        if (null === key($this->pipes)) {
+            $this->childProcess = null;
+
             return null;
         }
+
+        $step = $this->childProcess->getNextStep();
+
+        return $step;
+    }
+
+    private function getNextStepCurrentProcess() : ?PipelineStep
+    {
+        if (null === key($this->pipes)) return null;
 
         $pipe = current($this->pipes);
 
         next($this->pipes);
 
-        if ($pipe->middleware) {
-            $nestedProcess = $this->factory->newMiddlewareProcess(
-                $this->processManager,
-                $pipe->middleware
-            );
+        $step = null
+            ?? $this->getNextStepCurrentProcessFromMiddleware($pipe)
+            ?? $this->getNextStepCurrentProcessFromPipeline($pipe)
+            ?? $this->getNextStepCurrentProcessFromHandlerAction($pipe)
+            ?? $this->getNextStepCurrentProcessFromHandlerFallback($pipe);
 
-            $this->currentNestedProcess = $nestedProcess;
+        return $step;
+    }
 
-            $step = $nestedProcess->getNextStep();
+    private function getNextStepCurrentProcessFromMiddleware(PipelinePipe $pipe) : ?PipelineStep
+    {
+        if (! $pipe->hasMiddleware()) return null;
 
-            return $step;
-        }
+        $childProcess = $this->factory->newMiddlewareProcess(
+            $this->processManager,
+            $pipe->getMiddleware()
+        );
 
-        if ($pipe->pipeline) {
-            $nestedProcess = $this->factory->newPipelineProcess(
-                $this->processManager,
-                $pipe->pipeline
-            );
+        $step = $childProcess->getNextStep();
 
-            $this->currentNestedProcess = $nestedProcess;
+        $this->childProcess = $childProcess;
 
-            $step = $this->getNextStep();
+        return $step;
+    }
 
-            return $step;
-        }
+    private function getNextStepCurrentProcessFromPipeline(PipelinePipe $pipe) : ?PipelineStep
+    {
+        if (! $pipe->hasPipeline()) return null;
 
-        if ($pipe->handlerFallback && ! count($this->throwables)) {
-            $step = $this->getNextStep();
+        $childProcess = $this->factory->newPipelineProcess(
+            $this->processManager,
+            $pipe->getPipeline()
+        );
 
-            return $step;
-        }
+        $step = $childProcess->getNextStep();
 
-        if ($pipe->handlerAction && count($this->throwables)) {
-            $step = $this->getNextStep();
+        $this->childProcess = $childProcess;
 
-            return $step;
-        }
+        return $step;
+    }
 
-        $step = new PipelineStep();
-        $step->process = $this;
-        $step->pipe = $pipe;
+    private function getNextStepCurrentProcessFromHandlerAction(PipelinePipe $pipe) : ?PipelineStep
+    {
+        if (! $pipe->hasHandlerAction()) return null;
+        if (count($this->throwables)) return null;
+
+        $step = new PipelineStep($this, $pipe);
+
+        return $step;
+    }
+
+    private function getNextStepCurrentProcessFromHandlerFallback(PipelinePipe $pipe) : ?PipelineStep
+    {
+        if (! $pipe->hasHandlerFallback()) return null;
+        if (! count($this->throwables)) return null;
+
+        $step = new PipelineStep($this, $pipe);
 
         return $step;
     }
@@ -159,9 +169,7 @@ abstract class AbstractProcess implements PipelineProcessInterface
         $this->pipes = [];
         $this->throwables = [];
 
-        $this->currentNestedProcess = null;
-
-        $this->state = new \stdClass();
+        $this->childProcess = null;
     }
 
     public function run($input = null, $context = null) // : mixed

@@ -11,50 +11,55 @@ abstract class GenericHandler implements \Serializable
     /**
      * @var string
      */
-    public $key;
+    protected $key;
 
+    /**
+     * @var bool
+     */
+    protected $isClosure = false;
     /**
      * @var \Closure
      */
-    public $closure;
+    protected $closureObject;
 
     /**
-     * @var array{
-     *     0: object|class-string,
-     *     1: string
-     * }
+     * @var bool
      */
-    public $method;
+    protected $isMethod = false;
     /**
      * @var class-string
      */
-    public $methodClass;
+    protected $methodClass;
     /**
      * @var object
      */
-    public $methodObject;
+    protected $methodObject;
     /**
      * @var string
      */
-    public $methodName;
+    protected $methodName;
 
     /**
-     * @var callable|object|class-string
+     * @var bool
      */
-    public $invokable;
+    protected $isInvokable = false;
     /**
      * @var callable|object
      */
-    public $invokableObject;
+    protected $invokableObject;
     /**
      * @var class-string
      */
-    public $invokableClass;
+    protected $invokableClass;
 
+    /**
+     * @var bool
+     */
+    protected $isFunction = false;
     /**
      * @var callable|string
      */
-    public $function;
+    protected $functionString;
 
 
     /**
@@ -125,7 +130,12 @@ abstract class GenericHandler implements \Serializable
         }
 
         $instance = new static();
-        $instance->closure = $closure;
+        $instance->isClosure = true;
+        $instance->closureObject = $closure;
+
+        $phpId = spl_object_id($closure);
+
+        $instance->key = "{ object # \Closure # {$phpId} }";
 
         return $instance;
     }
@@ -135,25 +145,43 @@ abstract class GenericHandler implements \Serializable
      */
     protected static function tryFromMethod($method) // : ?static
     {
-        if (! Lib::php()->type_method_string($methodString, $method, [ &$methodArray ])) {
-            return Lib::php()->error(
+        $thePhp = Lib::php();
+
+        if (! $thePhp->type_method_string($methodString, $method, [ &$methodArray ])) {
+            return $thePhp->error(
                 [ 'The `from` should be existing method', $method ]
             );
         }
 
+        [ $objectOrClass, $methodName ] = $methodArray;
+
         $instance = new static();
 
-        $instance->method = $methodArray;
-        $instance->methodName = $methodArray[ 1 ];
+        $instance->isMethod = true;
 
-        $isObject = is_object($methodArray[ 0 ]);
+        if (is_object($objectOrClass)) {
+            $object = $objectOrClass;
 
-        if ($isObject) {
-            $instance->methodObject = $methodArray[ 0 ];
+            $phpClass = get_class($object);
+            $phpId = spl_object_id($object);
+
+            $key0 = "\"{ object # {$phpClass} # {$phpId} }\"";
+
+            $instance->methodObject = $object;
 
         } else {
-            $instance->methodClass = $methodArray[ 0 ];
+            $objectClass = $objectOrClass;
+
+            $key0 = '"' . $objectClass . '"';
+
+            $instance->methodClass = $objectClass;
         }
+
+        $key1 = "\"{$methodName}\"";
+
+        $instance->methodName = $methodName;
+
+        $instance->key = "[ {$key0}, {$key1} ]";
 
         return $instance;
     }
@@ -166,26 +194,37 @@ abstract class GenericHandler implements \Serializable
         $instance = null;
 
         if (is_object($invokable)) {
-            if (! is_callable($invokable)) {
+            if (! method_exists($invokable, '__invoke')) {
                 return null;
             }
 
             $instance = new static();
-            $instance->invokable = $invokable;
+            $instance->isInvokable = true;
             $instance->invokableObject = $invokable;
 
-        } elseif (null !== ($_invokableClass = Lib::parse()->string_not_empty($invokable))) {
-            if (! class_exists($_invokableClass)) {
-                return null;
-            }
+            $phpClass = get_class($invokable);
+            $phpId = spl_object_id($invokable);
 
-            if (! method_exists($_invokableClass, '__invoke')) {
-                return null;
-            }
+            $instance->key = "\"{ object # {$phpClass} # {$phpId} }\"";
 
-            $instance = new static();
-            $instance->invokable = $_invokableClass;
-            $instance->invokableClass = $_invokableClass;
+        } else {
+            $_invokableClass = Lib::parse()->string_not_empty($invokable);
+
+            if (null !== $_invokableClass) {
+                if (! class_exists($_invokableClass)) {
+                    return null;
+                }
+
+                if (! method_exists($_invokableClass, '__invoke')) {
+                    return null;
+                }
+
+                $instance = new static();
+                $instance->isInvokable = true;
+                $instance->invokableClass = $_invokableClass;
+
+                $instance->key = "\"{$_invokableClass}\"";
+            }
         }
 
         if (null === $instance) {
@@ -215,7 +254,10 @@ abstract class GenericHandler implements \Serializable
         }
 
         $instance = new static();
-        $instance->function = $_function;
+        $instance->isFunction = true;
+        $instance->functionString = $_function;
+
+        $instance->key = "\"{$_function}\"";
 
         return $instance;
     }
@@ -257,18 +299,109 @@ abstract class GenericHandler implements \Serializable
 
     public function getKey() : string
     {
-        if (! isset($this->key)) {
-            $key = null
-                ?? $this->closure
-                ?? $this->method
-                ?? $this->invokable
-                ?? $this->function;
-
-            $key = Lib::debug()->var_dump($key);
-
-            $this->key = $key;
-        }
-
         return $this->key;
+    }
+
+
+    public function isClosure() : bool
+    {
+        return $this->isClosure;
+    }
+
+    public function getClosureObject() : \Closure
+    {
+        return $this->closureObject;
+    }
+
+
+
+    public function isMethod() : bool
+    {
+        return $this->isMethod;
+    }
+
+    /**
+     * @return \class-string|null
+     */
+    public function hasMethodClass() : ?string
+    {
+        return $this->methodClass;
+    }
+
+    /**
+     * @return \class-string
+     */
+    public function getMethodClass() : string
+    {
+        return $this->methodClass;
+    }
+
+
+    public function hasMethodObject() : ?object
+    {
+        return $this->methodObject;
+    }
+
+    public function getMethodObject() : object
+    {
+        return $this->methodObject;
+    }
+
+
+    public function getMethodName() : string
+    {
+        return $this->methodName;
+    }
+
+
+    public function isInvokable() : bool
+    {
+        return $this->isInvokable;
+    }
+
+    /**
+     * @return callable|object|null
+     */
+    public function hasInvokableObject() : ?object
+    {
+        return $this->invokableObject;
+    }
+
+    /**
+     * @return callable|object
+     */
+    public function getInvokableObject() : object
+    {
+        return $this->invokableObject;
+    }
+
+    /**
+     * @return callable|object|null
+     */
+    public function hasInvokableClass() : ?string
+    {
+        return $this->invokableObject;
+    }
+
+    /**
+     * @return \class-string
+     */
+    public function getInvokableClass() : string
+    {
+        return $this->invokableClass;
+    }
+
+
+    public function isFunction() : bool
+    {
+        return $this->isFunction;
+    }
+
+    /**
+     * @return callable|string
+     */
+    public function getFunctionString() : string
+    {
+        return $this->functionString;
     }
 }

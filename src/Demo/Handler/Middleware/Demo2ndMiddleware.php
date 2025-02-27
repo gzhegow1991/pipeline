@@ -7,7 +7,7 @@ use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 
 class Demo2ndMiddleware
 {
-    public function __invoke(PipelineProcessInterface $pipeline, $input = null, $context = null, $state = null) // : mixed
+    public function __invoke(PipelineProcessInterface $pipeline, $input = null, $context = null) // : mixed
     {
         $method = __METHOD__;
 
