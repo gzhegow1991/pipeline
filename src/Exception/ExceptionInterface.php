@@ -2,7 +2,7 @@
 
 namespace Gzhegow\Pipeline\Exception;
 
-interface ExceptionInterface
+interface ExceptionInterface extends \Throwable
 {
 
 }
