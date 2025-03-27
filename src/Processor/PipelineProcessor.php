@@ -168,7 +168,7 @@ class PipelineProcessor implements PipelineProcessorInterface
             } else {
                 $fn = $handler->getFunctionStringInternal();
                 $fn = static function (...$args) use ($fn) {
-                    return Lib::php()->call_user_func($fn, $args);
+                    return Lib::php()->call_user_func($fn, ...$args);
                 };
             }
         }
