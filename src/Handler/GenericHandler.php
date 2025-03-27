@@ -4,6 +4,7 @@ namespace Gzhegow\Pipeline\Handler;
 
 use Gzhegow\Lib\Lib;
 use Gzhegow\Pipeline\Exception\LogicException;
+use Gzhegow\Pipeline\Exception\RuntimeException;
 
 
 abstract class GenericHandler implements \Serializable
@@ -56,10 +57,6 @@ abstract class GenericHandler implements \Serializable
      * @var bool
      */
     protected $isFunction = false;
-    /**
-     * @var callable|string
-     */
-    protected $functionStringInternal;
     /**
      * @var callable|string
      */
@@ -259,17 +256,18 @@ abstract class GenericHandler implements \Serializable
             );
         }
 
-        $isInternal = $thePhp->type_callable_string_function_internal($_functionInternal, $_function);
+        if ($thePhp->type_callable_string_function_internal($_functionInternal, $_function)) {
+            return Lib::php()->error(
+                [
+                    'Unable to use PHP internal function as pipeline step',
+                    $_function,
+                ]
+            );
+        }
 
         $instance = new static();
         $instance->isFunction = true;
-
-        if ($isInternal) {
-            $instance->functionStringInternal = $_function;
-
-        } else {
-            $instance->functionStringNonInternal = $_function;
-        }
+        $instance->functionStringNonInternal = $_function;
 
         $instance->key = "\"{$_function}\"";
 
@@ -419,23 +417,6 @@ abstract class GenericHandler implements \Serializable
     public function isFunction() : bool
     {
         return $this->isFunction;
-    }
-
-
-    /**
-     * @return callable|string|null
-     */
-    public function hasFunctionStringInternal() : ?string
-    {
-        return $this->functionStringInternal;
-    }
-
-    /**
-     * @return callable|string
-     */
-    public function getFunctionStringInternal() : string
-    {
-        return $this->functionStringInternal;
     }
 
 

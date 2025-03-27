@@ -164,20 +164,13 @@ class PipelineProcessor implements PipelineProcessorInterface
         } elseif ($handler->isFunction()) {
             if ($handler->hasFunctionStringNonInternal()) {
                 $fn = $handler->getFunctionStringNonInternal();
-
-            } else {
-                $fn = $handler->getFunctionStringInternal();
-                $fn = static function (...$args) use ($fn) {
-                    return Lib::php()->call_user_func($fn, ...$args);
-                };
             }
         }
 
         if (! is_callable($fn)) {
             throw new RuntimeException(
                 [
-                    'Unable to extract callable from handler.'
-                    . ' / Handler: ' . Lib::debug()->var_dump($handler),
+                    'Unable to extract callable from handler',
                     $handler,
                 ]
             );
