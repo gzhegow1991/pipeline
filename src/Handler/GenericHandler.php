@@ -59,7 +59,11 @@ abstract class GenericHandler implements \Serializable
     /**
      * @var callable|string
      */
-    protected $functionString;
+    protected $functionStringInternal;
+    /**
+     * @var callable|string
+     */
+    protected $functionStringNonInternal;
 
 
     /**
@@ -241,6 +245,8 @@ abstract class GenericHandler implements \Serializable
      */
     protected static function tryFromFunction($function) // : ?static
     {
+        $thePhp = Lib::php();
+
         if (null === ($_function = Lib::parse()->string_not_empty($function))) {
             return Lib::php()->error(
                 [ 'The `from` should be existing function name', $function ]
@@ -253,9 +259,17 @@ abstract class GenericHandler implements \Serializable
             );
         }
 
+        $isInternal = $thePhp->type_callable_string_function_internal($_functionInternal, $_function);
+
         $instance = new static();
         $instance->isFunction = true;
-        $instance->functionString = $_function;
+
+        if ($isInternal) {
+            $instance->functionStringInternal = $_function;
+
+        } else {
+            $instance->functionStringNonInternal = $_function;
+        }
 
         $instance->key = "\"{$_function}\"";
 
@@ -407,19 +421,37 @@ abstract class GenericHandler implements \Serializable
         return $this->isFunction;
     }
 
+
     /**
      * @return callable|string|null
      */
-    public function hasFunctionString() : ?string
+    public function hasFunctionStringInternal() : ?string
     {
-        return $this->functionString;
+        return $this->functionStringInternal;
     }
 
     /**
      * @return callable|string
      */
-    public function getFunctionString() : string
+    public function getFunctionStringInternal() : string
     {
-        return $this->functionString;
+        return $this->functionStringInternal;
+    }
+
+
+    /**
+     * @return callable|string|null
+     */
+    public function hasFunctionStringNonInternal() : ?string
+    {
+        return $this->functionStringNonInternal;
+    }
+
+    /**
+     * @return callable|string
+     */
+    public function getFunctionStringNonInternal() : string
+    {
+        return $this->functionStringNonInternal;
     }
 }
