@@ -45,6 +45,11 @@ class PipelinePipe
     protected $pipeline;
 
 
+    private function __construct()
+    {
+    }
+
+
     /**
      * @return static
      */

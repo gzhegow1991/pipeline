@@ -63,6 +63,11 @@ abstract class GenericHandler implements \Serializable
     protected $functionStringNonInternal;
 
 
+    private function __construct()
+    {
+    }
+
+
     /**
      * @return static
      */
@@ -272,11 +277,6 @@ abstract class GenericHandler implements \Serializable
         $instance->key = "\"{$_function}\"";
 
         return $instance;
-    }
-
-
-    private function __construct()
-    {
     }
 
 
