@@ -4,9 +4,6 @@
     "version": "1.7.0",
     "license": "MIT",
 
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-
     "authors": [
         {
             "name": "gzhegow",
@@ -14,9 +11,20 @@
         }
     ],
 
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+
     "autoload": {
         "psr-4": {
             "Gzhegow\\Pipeline\\": "src/"
+        },
+        "exclude-from-classmap": [
+            "tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Gzhegow\\Pipeline\\Tests\\": "tests/src/"
         }
     },
 

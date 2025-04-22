@@ -1,29 +1,3 @@
-# Pipeline
-
-Конвеер, реализация паттерна "цепочка обязанностей"
-
-Требуется в:
-
-- в роутерах: возможность цеплять Middleware и Fallback
-- в логике: возможность писать обработчики данных без дублирования (Chain Of Responsibility)
-- в отладке: подменять этапы, не меняя их код и не изучая его
-- в асинхронном выполнении: возможность перебрасывать шаги из нескольких конвееров на несколько ядер процессора, параллельность
-
-## Установить
-
-```
-composer require gzhegow/pipeline
-```
-
-## Запустить тесты
-
-```
-php test.php
-```
-
-## Примеры и тесты
-
-```php
 <?php
 
 define('__ROOT__', __DIR__ . '/..');
@@ -629,5 +603,3 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoRuntimeExceptionFallback::__invoke
 Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ');
-```
-
