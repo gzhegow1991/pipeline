@@ -51,43 +51,27 @@ class PipelinePipe
 
 
     /**
-     * @return static
+     * @return static|bool|null
      */
-    public static function from($from) // : static
+    public static function from($from, array $refs = [])
     {
-        $instance = static::tryFrom($from, $error);
+        $withErrors = array_key_exists(0, $refs);
 
-        if (null === $instance) {
-            throw $error;
-        }
-
-        return $instance;
-    }
-
-    /**
-     * @return static|null
-     */
-    public static function tryFrom($from, \Throwable &$last = null) // : ?static
-    {
-        $last = null;
-
-        Lib::php()->errors_start($b);
+        $refs[ 0 ] = $refs[ 0 ] ?? null;
 
         $instance = null
-            ?? static::tryFromInstance($from)
+            ?? static::fromStatic($from, $refs)
             //
-            ?? static::tryFromMiddleware($from)
-            ?? static::tryFromPipeline($from)
+            ?? static::fromMiddleware($from, $refs)
+            ?? static::fromPipeline($from, $refs)
             //
-            ?? static::tryFromHandlerAction($from)
-            ?? static::tryFromHandlerFallback($from)
-            ?? static::tryFromHandlerMiddleware($from);
+            ?? static::fromHandlerAction($from, $refs)
+            ?? static::fromHandlerFallback($from, $refs)
+            ?? static::fromHandlerMiddleware($from, $refs);
 
-        $errors = Lib::php()->errors_end($b);
-
-        if (null === $instance) {
-            foreach ( $errors as $error ) {
-                $last = new LogicException($error, $last);
+        if (! $withErrors) {
+            if (null === $instance) {
+                throw $refs[ 0 ];
             }
         }
 
@@ -96,103 +80,122 @@ class PipelinePipe
 
 
     /**
-     * @return static|null
+     * @return static|bool|null
      */
-    public static function tryFromInstance($instance) // : ?static
+    public static function fromStatic($from, array $refs = [])
     {
-        if (! ($instance instanceof static)) {
-            return Lib::php()->error(
-                [ 'The `from` should be instance of: ' . static::class, $instance ]
-            );
+        if ($from instanceof static) {
+            return Lib::refsResult($refs, $from);
         }
 
-        return $instance;
-    }
-
-    /**
-     * @return static|null
-     */
-    public static function tryFromHandlerAction($handlerAction) // : ?static
-    {
-        if (! ($handlerAction instanceof GenericHandlerAction)) {
-            return Lib::php()->error(
-                [ 'The `from` should be instance of: ' . GenericHandlerAction::class, $handlerAction ]
-            );
-        }
-
-        $instance = new static();
-        $instance->handlerAction = $handlerAction;
-
-        return $instance;
-    }
-
-    /**
-     * @return static|null
-     */
-    public static function tryFromHandlerFallback($handlerFallback) // : ?static
-    {
-        if (! ($handlerFallback instanceof GenericHandlerFallback)) {
-            return Lib::php()->error(
-                [ 'The `from` should be instance of: ' . GenericHandlerFallback::class, $handlerFallback ]
-            );
-        }
-
-        $instance = new static();
-        $instance->handlerFallback = $handlerFallback;
-
-        return $instance;
-    }
-
-    /**
-     * @return static|null
-     */
-    public static function tryFromHandlerMiddleware($handlerMiddleware) // : ?static
-    {
-        if (! ($handlerMiddleware instanceof GenericHandlerMiddleware)) {
-            return Lib::php()->error(
-                [ 'The `from` should be instance of: ' . GenericHandlerMiddleware::class, $handlerMiddleware ]
-            );
-        }
-
-        $instance = new static();
-        $instance->handlerMiddleware = $handlerMiddleware;
-
-        return $instance;
+        return Lib::refsError(
+            $refs,
+            new LogicException(
+                [ 'The `from` should be instance of: ' . static::class, $from ]
+            )
+        );
     }
 
 
     /**
-     * @return static|null
+     * @return static|bool|null
      */
-    public static function tryFromMiddleware($middleware) // : ?static
+    public static function fromMiddleware($from, array $refs = [])
     {
-        if (! ($middleware instanceof MiddlewareChain)) {
-            return Lib::php()->error(
-                [ 'The `from` should be instance of: ' . MiddlewareChain::class, $middleware ]
+        if (! ($from instanceof MiddlewareChain)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be instance of: ' . MiddlewareChain::class, $from ]
+                )
             );
         }
 
         $instance = new static();
-        $instance->middleware = $middleware;
+        $instance->middleware = $from;
 
-        return $instance;
+        return Lib::refsResult($refs, $instance);
     }
 
     /**
-     * @return static|null
+     * @return static|bool|null
      */
-    public static function tryFromPipeline($pipeline) // : ?static
+    public static function fromPipeline($from, array $refs = [])
     {
-        if (! ($pipeline instanceof PipelineChain)) {
-            return Lib::php()->error(
-                [ 'The `from` should be instance of: ' . PipelineChain::class, $pipeline ]
+        if (! ($from instanceof PipelineChain)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be instance of: ' . PipelineChain::class, $from ]
+                )
             );
         }
 
         $instance = new static();
-        $instance->pipeline = $pipeline;
+        $instance->pipeline = $from;
 
-        return $instance;
+        return Lib::refsResult($refs, $instance);
+    }
+
+
+    /**
+     * @return static|bool|null
+     */
+    public static function fromHandlerAction($from, array $refs = [])
+    {
+        if (! ($from instanceof GenericHandlerAction)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be instance of: ' . GenericHandlerAction::class, $from ]
+                )
+            );
+        }
+
+        $instance = new static();
+        $instance->handlerAction = $from;
+
+        return Lib::refsResult($refs, $instance);
+    }
+
+    /**
+     * @return static|bool|null
+     */
+    public static function fromHandlerFallback($from, array $refs = [])
+    {
+        if (! ($from instanceof GenericHandlerFallback)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be instance of: ' . GenericHandlerFallback::class, $from ]
+                )
+            );
+        }
+
+        $instance = new static();
+        $instance->handlerFallback = $from;
+
+        return Lib::refsResult($refs, $instance);
+    }
+
+    /**
+     * @return static|bool|null
+     */
+    public static function fromHandlerMiddleware($from, array $refs = [])
+    {
+        if (! ($from instanceof GenericHandlerMiddleware)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be instance of: ' . GenericHandlerMiddleware::class, $from ]
+                )
+            );
+        }
+
+        $instance = new static();
+        $instance->handlerMiddleware = $from;
+
+        return Lib::refsResult($refs, $instance);
     }
 
 

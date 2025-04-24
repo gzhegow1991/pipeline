@@ -4,7 +4,6 @@ namespace Gzhegow\Pipeline\Handler;
 
 use Gzhegow\Lib\Lib;
 use Gzhegow\Pipeline\Exception\LogicException;
-use Gzhegow\Pipeline\Exception\RuntimeException;
 
 
 abstract class GenericHandler implements \Serializable
@@ -13,6 +12,11 @@ abstract class GenericHandler implements \Serializable
      * @var string
      */
     protected $key;
+
+    /**
+     * @var array
+     */
+    protected $args = [];
 
     /**
      * @var bool
@@ -60,6 +64,10 @@ abstract class GenericHandler implements \Serializable
     /**
      * @var callable|string
      */
+    protected $functionStringInternal;
+    /**
+     * @var callable|string
+     */
     protected $functionStringNonInternal;
 
 
@@ -69,99 +77,97 @@ abstract class GenericHandler implements \Serializable
 
 
     /**
-     * @return static
+     * @return static|bool|null
      */
-    public static function from($from) // : static
+    public static function from($from, array $context = [], array $refs = [])
     {
-        $instance = static::tryFrom($from, $error);
+        $withErrors = array_key_exists(0, $refs);
 
-        if (null === $instance) {
-            throw $error;
-        }
-
-        return $instance;
-    }
-
-    /**
-     * @return static|null
-     */
-    public static function tryFrom($from, \Throwable &$last = null) // : ?static
-    {
-        $last = null;
-
-        Lib::php()->errors_start($b);
+        $refs[ 0 ] = $refs[ 0 ] ?? null;
 
         $instance = null
-            ?? static::tryFromInstance($from)
-            ?? static::tryFromClosure($from)
-            ?? static::tryFromMethod($from)
-            ?? static::tryFromInvokable($from)
-            ?? static::tryFromFunction($from);
+            ?? static::fromInstance($from, $refs)
+            ?? static::fromFunction($from, $context, $refs)
+            ?? static::fromMethod($from, $context, $refs)
+            ?? static::fromClosure($from, $context, $refs)
+            ?? static::fromInvokableObject($from, $context, $refs)
+            ?? static::fromInvokableClass($from, $context, $refs);
 
-        $errors = Lib::php()->errors_end($b);
-
-        if (null === $instance) {
-            foreach ( $errors as $error ) {
-                $last = new LogicException($error, $last);
+        if (! $withErrors) {
+            if (null === $instance) {
+                throw $refs[ 0 ];
             }
         }
 
         return $instance;
     }
 
-
     /**
-     * @return static|null
+     * @return static|bool|null
      */
-    protected static function tryFromInstance($instance) // : ?static
+    public static function fromInstance($from, array $refs = [])
     {
-        if (! is_a($instance, static::class)) {
-            return Lib::php()->error(
-                [ 'The `from` should be instance of: ' . static::class, $instance ]
-            );
+        if ($from instanceof static) {
+            return Lib::refsResult($refs, $from);
         }
 
-        return $instance;
+        return Lib::refsError(
+            $refs,
+            new LogicException(
+                [ 'The `from` should be instance of: ' . static::class, $from ]
+            )
+        );
     }
 
     /**
-     * @return static|null
+     * @return static|bool|null
      */
-    protected static function tryFromClosure($closure) // : ?static
+    public static function fromClosure($from, array $context = [], array $refs = [])
     {
-        if (! is_a($closure, \Closure::class)) {
-            return Lib::php()->error(
-                [ 'The `from` should be instance of: ' . \Closure::class, $closure ]
+        if (! ($from instanceof \Closure)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be instance of \Closure', $from ]
+                )
             );
         }
 
-        $instance = new static();
-        $instance->isClosure = true;
-        $instance->closureObject = $closure;
+        $arguments = $context[ 'arguments' ] ?? [];
 
-        $phpId = spl_object_id($closure);
+        $instance = new static();
+        $instance->args = $arguments;
+
+        $instance->isClosure = true;
+        $instance->closureObject = $from;
+
+        $phpId = spl_object_id($from);
 
         $instance->key = "{ object # \Closure # {$phpId} }";
 
-        return $instance;
+        return Lib::refsResult($refs, $instance);
     }
 
     /**
-     * @return static|null
+     * @return static|bool|null
      */
-    protected static function tryFromMethod($method) // : ?static
+    public static function fromMethod($from, array $context = [], array $refs = [])
     {
-        $thePhp = Lib::php();
-
-        if (! $thePhp->type_method_string($methodString, $method, [ &$methodArray ])) {
-            return $thePhp->error(
-                [ 'The `from` should be existing method', $method ]
+        if (! Lib::php()->type_method_string($methodString, $from, [ &$methodArray ])) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be existing method', $from ]
+                )
             );
         }
+
+        $arguments = $context[ 'arguments' ] ?? [];
 
         [ $objectOrClass, $methodName ] = $methodArray;
 
         $instance = new static();
+        $instance->args = $arguments;
 
         $instance->isMethod = true;
 
@@ -189,94 +195,137 @@ abstract class GenericHandler implements \Serializable
 
         $instance->key = "[ {$key0}, {$key1} ]";
 
-        return $instance;
+        return Lib::refsResult($refs, $instance);
     }
 
     /**
-     * @return static|null
+     * @return static|bool|null
      */
-    protected static function tryFromInvokable($invokable) // : ?static
+    public static function fromInvokableObject($from, array $context = [], array $refs = [])
     {
-        $instance = null;
-
-        if (is_object($invokable)) {
-            if (! method_exists($invokable, '__invoke')) {
-                return null;
-            }
-
-            $instance = new static();
-            $instance->isInvokable = true;
-            $instance->invokableObject = $invokable;
-
-            $phpClass = get_class($invokable);
-            $phpId = spl_object_id($invokable);
-
-            $instance->key = "\"{ object # {$phpClass} # {$phpId} }\"";
-
-        } else {
-            $_invokableClass = Lib::parse()->string_not_empty($invokable);
-
-            if (null !== $_invokableClass) {
-                if (! class_exists($_invokableClass)) {
-                    return null;
-                }
-
-                if (! method_exists($_invokableClass, '__invoke')) {
-                    return null;
-                }
-
-                $instance = new static();
-                $instance->isInvokable = true;
-                $instance->invokableClass = $_invokableClass;
-
-                $instance->key = "\"{$_invokableClass}\"";
-            }
-        }
-
-        if (null === $instance) {
-            return Lib::php()->error(
-                [ 'The `from` should be existing invokable class or object', $invokable ]
+        if (! is_object($from)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be object', $from ]
+                )
             );
         }
 
-        return $instance;
+        if (! method_exists($from, '__invoke')) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be invokable object', $from ]
+                )
+            );
+        }
+
+        $arguments = $context[ 'arguments' ] ?? [];
+
+        $instance = new static();
+        $instance->args = $arguments;
+
+        $instance->isInvokable = true;
+        $instance->invokableObject = $from;
+
+        $phpClass = get_class($from);
+        $phpId = spl_object_id($from);
+
+        $instance->key = "\"{ object # {$phpClass} # {$phpId} }\"";
+
+        return Lib::refsResult($refs, $instance);
     }
 
     /**
-     * @return static|null
+     * @return static|bool|null
      */
-    protected static function tryFromFunction($function) // : ?static
+    public static function fromInvokableClass($from, array $context = [], array $refs = [])
+    {
+        if (! Lib::type()->string_not_empty($_invokableClass, $from)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be non-empty string', $from ]
+                )
+            );
+        }
+
+        if (! class_exists($_invokableClass)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be existing class', $from ]
+                )
+            );
+        }
+
+        if (! method_exists($_invokableClass, '__invoke')) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be invokable class', $from ]
+                )
+            );
+        }
+
+        $arguments = $context[ 'arguments' ] ?? [];
+
+        $instance = new static();
+        $instance->args = $arguments;
+
+        $instance->isInvokable = true;
+        $instance->invokableClass = $_invokableClass;
+
+        $instance->key = "\"{$_invokableClass}\"";
+
+        return Lib::refsResult($refs, $instance);
+    }
+
+    /**
+     * @return static|bool|null
+     */
+    public static function fromFunction($function, array $context = [], array $refs = [])
     {
         $thePhp = Lib::php();
 
-        if (null === ($_function = Lib::parse()->string_not_empty($function))) {
-            return Lib::php()->error(
-                [ 'The `from` should be existing function name', $function ]
+        if (! Lib::type()->string_not_empty($_function, $function)) {
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be existing function name', $function ]
+                )
             );
         }
 
         if (! function_exists($_function)) {
-            return Lib::php()->error(
-                [ 'The `from` should be existing function name', $_function ]
+            return Lib::refsError(
+                $refs,
+                new LogicException(
+                    [ 'The `from` should be existing function name', $_function ]
+                )
             );
         }
 
-        if ($thePhp->type_callable_string_function_internal($_functionInternal, $_function)) {
-            return Lib::php()->error(
-                [
-                    'Unable to use PHP internal function as pipeline step',
-                    $_function,
-                ]
-            );
-        }
+        $arguments = $context[ 'arguments' ] ?? [];
 
         $instance = new static();
+        $instance->args = $arguments;
+
         $instance->isFunction = true;
-        $instance->functionStringNonInternal = $_function;
+
+        $isInternal = $thePhp->type_callable_string_function_internal($_functionInternal, $_function);
+
+        if ($isInternal) {
+            $instance->functionStringInternal = $_function;
+
+        } else {
+            $instance->functionStringNonInternal = $_function;
+        }
 
         $instance->key = "\"{$_function}\"";
 
-        return $instance;
+        return Lib::refsResult($refs, $instance);
     }
 
 
@@ -312,6 +361,12 @@ abstract class GenericHandler implements \Serializable
     public function getKey() : string
     {
         return $this->key;
+    }
+
+
+    public function getArgs() : array
+    {
+        return $this->args;
     }
 
 
@@ -417,6 +472,23 @@ abstract class GenericHandler implements \Serializable
     public function isFunction() : bool
     {
         return $this->isFunction;
+    }
+
+
+    /**
+     * @return callable|string|null
+     */
+    public function hasFunctionStringInternal() : ?string
+    {
+        return $this->functionStringInternal;
+    }
+
+    /**
+     * @return callable|string
+     */
+    public function getFunctionStringInternal() : string
+    {
+        return $this->functionStringInternal;
     }
 
 

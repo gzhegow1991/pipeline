@@ -7,7 +7,7 @@ use Gzhegow\Pipeline\Process\PipelineProcessInterface;
 
 class DemoOmitMiddleware
 {
-    public function __invoke(PipelineProcessInterface $pipeline, $input = null, $context = null) // : mixed
+    public function __invoke(PipelineProcessInterface $pipeline, $input = null, $context = null)
     {
         $method = __METHOD__;
 

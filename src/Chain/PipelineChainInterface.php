@@ -19,7 +19,7 @@ interface PipelineChainInterface
     /**
      * @return static
      */
-    public function pipeline(PipelineChain $from); // : static
+    public function pipeline(PipelineChain $from);
 
     public function startPipeline() : PipelineChain;
 
@@ -29,7 +29,7 @@ interface PipelineChainInterface
     /**
      * @return static
      */
-    public function middleware(MiddlewareChain $from); // : static
+    public function middleware(MiddlewareChain $from);
 
     public function startMiddleware($from) : MiddlewareChain;
 
@@ -39,12 +39,12 @@ interface PipelineChainInterface
     /**
      * @return static
      */
-    public function action($from); // : static
+    public function action($from);
 
     /**
      * @return static
      */
-    public function fallback($from); // : static
+    public function fallback($from);
 
 
     /**
@@ -56,5 +56,5 @@ interface PipelineChainInterface
 
     public function popThrowable() : ?\Throwable;
 
-    public function throwable(\Throwable $throwable); // : static
+    public function throwable(\Throwable $throwable);
 }

@@ -36,7 +36,7 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
     }
 
 
-    public function run($pipeline, $input = null, $context = null) // : mixed
+    public function run($pipeline, $input = null, $context = null)
     {
         $result = null;
 
@@ -54,7 +54,7 @@ class PipelineProcessManager implements PipelineProcessManagerInterface
         return $result;
     }
 
-    public function next(PipelineProcessInterface $process, $input = null, $context = null) // : mixed
+    public function next(PipelineProcessInterface $process, $input = null, $context = null)
     {
         $result = null;
 

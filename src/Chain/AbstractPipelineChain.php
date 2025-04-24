@@ -50,7 +50,7 @@ abstract class AbstractPipelineChain implements PipelineChainInterface
      *
      * @return static
      */
-    public function setProcessManager(PipelineProcessManagerInterface $processManager) // : static
+    public function setProcessManager(PipelineProcessManagerInterface $processManager)
     {
         $this->processManager = $processManager;
 
@@ -66,10 +66,11 @@ abstract class AbstractPipelineChain implements PipelineChainInterface
         return $this->pipes;
     }
 
+
     /**
      * @return static
      */
-    public function pipeline(PipelineChain $from) // : static
+    public function pipeline(PipelineChain $from)
     {
         $pipe = PipelinePipe::from($from);
 
@@ -104,7 +105,7 @@ abstract class AbstractPipelineChain implements PipelineChainInterface
     /**
      * @return static
      */
-    public function middleware(MiddlewareChain $from) // : static
+    public function middleware(MiddlewareChain $from)
     {
         $pipe = PipelinePipe::from($from);
 
@@ -139,7 +140,7 @@ abstract class AbstractPipelineChain implements PipelineChainInterface
     /**
      * @return static
      */
-    public function action($from) // : static
+    public function action($from)
     {
         $generic = GenericHandlerAction::from($from);
 
@@ -153,7 +154,7 @@ abstract class AbstractPipelineChain implements PipelineChainInterface
     /**
      * @return static
      */
-    public function fallback($from) // : static
+    public function fallback($from)
     {
         $generic = GenericHandlerFallback::from($from);
 
@@ -195,7 +196,7 @@ abstract class AbstractPipelineChain implements PipelineChainInterface
         return $throwable;
     }
 
-    public function throwable(\Throwable $throwable) // : static
+    public function throwable(\Throwable $throwable)
     {
         $this->throwables[] = $throwable;
 
@@ -203,7 +204,7 @@ abstract class AbstractPipelineChain implements PipelineChainInterface
     }
 
 
-    public function run($input = null, $context = null) // : mixed
+    public function run($input = null, $context = null)
     {
         if (! $this->processManager) {
             throw new RuntimeException(

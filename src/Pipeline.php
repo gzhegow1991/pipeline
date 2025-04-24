@@ -27,7 +27,7 @@ class Pipeline
     /**
      * @throws PipelineException
      */
-    public static function run($pipeline, $input = null, $context = null) // : mixed
+    public static function run($pipeline, $input = null, $context = null)
     {
         $result = static::$facade->run($pipeline, $input, $context);
 

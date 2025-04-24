@@ -7,9 +7,9 @@ interface PipelineProcessInterface
 {
     public function reset() : void;
 
-    public function run($input = null, $context = null);  // : mixed
+    public function run($input = null, $context = null);
 
-    public function next($input = null, $context = null); // : mixed
+    public function next($input = null, $context = null);
 
 
     /**
@@ -24,5 +24,5 @@ interface PipelineProcessInterface
     /**
      * @return static
      */
-    public function addThrowable(\Throwable $throwable); // : static
+    public function addThrowable(\Throwable $throwable);
 }

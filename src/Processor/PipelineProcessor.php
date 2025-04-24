@@ -125,7 +125,7 @@ class PipelineProcessor implements PipelineProcessorInterface
     }
 
 
-    protected function callUserFuncArray($fn, array $args) // : mixed
+    protected function callUserFuncArray($fn, array $args)
     {
         [ $list ] = Lib::arr()->kwargs($args);
 

@@ -51,7 +51,7 @@ class PipelineFacade implements PipelineFacadeInterface
     /**
      * @throws PipelineException
      */
-    public function run($pipeline, $input = null, $context = null) // : mixed
+    public function run($pipeline, $input = null, $context = null)
     {
         $result = $this->processManager->run(
             $pipeline,

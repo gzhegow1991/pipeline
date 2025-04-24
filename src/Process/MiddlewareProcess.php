@@ -109,7 +109,7 @@ class MiddlewareProcess extends AbstractProcess
     }
 
 
-    public function next($input = null, $context = null) // : mixed
+    public function next($input = null, $context = null)
     {
         $this->isNextCalled = true;
 

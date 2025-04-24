@@ -7,7 +7,7 @@ use Gzhegow\Pipeline\Exception\RuntimeException;
 
 class DemoRuntimeExceptionAction
 {
-    public function __invoke($input = null, $context = null) // : mixed
+    public function __invoke($input = null, $context = null)
     {
         echo __METHOD__ . PHP_EOL;
 
