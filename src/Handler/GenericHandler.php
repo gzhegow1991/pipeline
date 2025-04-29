@@ -3,7 +3,7 @@
 namespace Gzhegow\Pipeline\Handler;
 
 use Gzhegow\Lib\Lib;
-use Gzhegow\Pipeline\Exception\LogicException;
+use Gzhegow\Lib\Modules\Php\Result\Result;
 
 
 abstract class GenericHandler implements \Serializable
@@ -79,57 +79,51 @@ abstract class GenericHandler implements \Serializable
     /**
      * @return static|bool|null
      */
-    public static function from($from, array $context = [], array $refs = [])
+    public static function from($from, array $context = [], $ctx = null)
     {
-        $withErrors = array_key_exists(0, $refs);
-
-        $refs[ 0 ] = $refs[ 0 ] ?? null;
+        Result::parse($cur);
 
         $instance = null
-            ?? static::fromInstance($from, $refs)
-            ?? static::fromFunction($from, $context, $refs)
-            ?? static::fromMethod($from, $context, $refs)
-            ?? static::fromClosure($from, $context, $refs)
-            ?? static::fromInvokableObject($from, $context, $refs)
-            ?? static::fromInvokableClass($from, $context, $refs);
+            ?? static::fromInstance($from, $cur)
+            ?? static::fromFunction($from, $context, $cur)
+            ?? static::fromMethod($from, $context, $cur)
+            ?? static::fromClosure($from, $context, $cur)
+            ?? static::fromInvokableObject($from, $context, $cur)
+            ?? static::fromInvokableClass($from, $context, $cur);
 
-        if (! $withErrors) {
-            if (null === $instance) {
-                throw $refs[ 0 ];
-            }
+        if ($cur->isErr()) {
+            return Result::err($ctx, $cur);
         }
 
-        return $instance;
+        return Result::ok($ctx, $instance);
     }
 
     /**
      * @return static|bool|null
      */
-    public static function fromInstance($from, array $refs = [])
+    public static function fromInstance($from, $ctx = null)
     {
         if ($from instanceof static) {
-            return Lib::refsResult($refs, $from);
+            return Result::ok($ctx, $from);
         }
 
-        return Lib::refsError(
-            $refs,
-            new LogicException(
-                [ 'The `from` should be instance of: ' . static::class, $from ]
-            )
+        return Result::err(
+            $ctx,
+            [ 'The `from` should be instance of: ' . static::class, $from ],
+            [ __FILE__, __LINE__ ]
         );
     }
 
     /**
      * @return static|bool|null
      */
-    public static function fromClosure($from, array $context = [], array $refs = [])
+    public static function fromClosure($from, array $context = [], $ctx = null)
     {
         if (! ($from instanceof \Closure)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be instance of \Closure', $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be instance of \Closure', $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
@@ -145,20 +139,19 @@ abstract class GenericHandler implements \Serializable
 
         $instance->key = "{ object # \Closure # {$phpId} }";
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
     /**
      * @return static|bool|null
      */
-    public static function fromMethod($from, array $context = [], array $refs = [])
+    public static function fromMethod($from, array $context = [], $ctx = null)
     {
         if (! Lib::php()->type_method_string($methodString, $from, [ &$methodArray ])) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be existing method', $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be existing method', $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
@@ -195,29 +188,27 @@ abstract class GenericHandler implements \Serializable
 
         $instance->key = "[ {$key0}, {$key1} ]";
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
     /**
      * @return static|bool|null
      */
-    public static function fromInvokableObject($from, array $context = [], array $refs = [])
+    public static function fromInvokableObject($from, array $context = [], $ctx = null)
     {
         if (! is_object($from)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be object', $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be object', $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
         if (! method_exists($from, '__invoke')) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be invokable object', $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be invokable object', $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
@@ -234,38 +225,35 @@ abstract class GenericHandler implements \Serializable
 
         $instance->key = "\"{ object # {$phpClass} # {$phpId} }\"";
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
     /**
      * @return static|bool|null
      */
-    public static function fromInvokableClass($from, array $context = [], array $refs = [])
+    public static function fromInvokableClass($from, array $context = [], $ctx = null)
     {
         if (! Lib::type()->string_not_empty($_invokableClass, $from)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be non-empty string', $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be non-empty string', $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
         if (! class_exists($_invokableClass)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be existing class', $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be existing class', $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
         if (! method_exists($_invokableClass, '__invoke')) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be invokable class', $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be invokable class', $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
@@ -279,31 +267,29 @@ abstract class GenericHandler implements \Serializable
 
         $instance->key = "\"{$_invokableClass}\"";
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
     /**
      * @return static|bool|null
      */
-    public static function fromFunction($function, array $context = [], array $refs = [])
+    public static function fromFunction($function, array $context = [], $ctx = null)
     {
         $thePhp = Lib::php();
 
         if (! Lib::type()->string_not_empty($_function, $function)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be existing function name', $function ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be existing function name', $function ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
         if (! function_exists($_function)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be existing function name', $_function ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be existing function name', $_function ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
@@ -325,7 +311,7 @@ abstract class GenericHandler implements \Serializable
 
         $instance->key = "\"{$_function}\"";
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
 

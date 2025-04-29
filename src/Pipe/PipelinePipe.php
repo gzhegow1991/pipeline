@@ -2,11 +2,10 @@
 
 namespace Gzhegow\Pipeline\Pipe;
 
-use Gzhegow\Lib\Lib;
 use Gzhegow\Pipeline\Chain\PipelineChain;
+use Gzhegow\Lib\Modules\Php\Result\Result;
 use Gzhegow\Pipeline\Chain\MiddlewareChain;
 use Gzhegow\Pipeline\Handler\GenericHandler;
-use Gzhegow\Pipeline\Exception\LogicException;
 use Gzhegow\Pipeline\Chain\PipelineChainInterface;
 use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
 use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
@@ -53,46 +52,41 @@ class PipelinePipe
     /**
      * @return static|bool|null
      */
-    public static function from($from, array $refs = [])
+    public static function from($from, $ctx = null)
     {
-        $withErrors = array_key_exists(0, $refs);
-
-        $refs[ 0 ] = $refs[ 0 ] ?? null;
+        Result::parse($cur);
 
         $instance = null
-            ?? static::fromStatic($from, $refs)
+            ?? static::fromStatic($from, $cur)
             //
-            ?? static::fromMiddleware($from, $refs)
-            ?? static::fromPipeline($from, $refs)
+            ?? static::fromMiddleware($from, $cur)
+            ?? static::fromPipeline($from, $cur)
             //
-            ?? static::fromHandlerAction($from, $refs)
-            ?? static::fromHandlerFallback($from, $refs)
-            ?? static::fromHandlerMiddleware($from, $refs);
+            ?? static::fromHandlerAction($from, $cur)
+            ?? static::fromHandlerFallback($from, $cur)
+            ?? static::fromHandlerMiddleware($from, $cur);
 
-        if (! $withErrors) {
-            if (null === $instance) {
-                throw $refs[ 0 ];
-            }
+        if ($cur->isErr()) {
+            return Result::err($ctx, $cur);
         }
 
-        return $instance;
+        return Result::ok($ctx, $instance);
     }
 
 
     /**
      * @return static|bool|null
      */
-    public static function fromStatic($from, array $refs = [])
+    public static function fromStatic($from, $ctx = null)
     {
         if ($from instanceof static) {
-            return Lib::refsResult($refs, $from);
+            return Result::ok($ctx, $from);
         }
 
-        return Lib::refsError(
-            $refs,
-            new LogicException(
-                [ 'The `from` should be instance of: ' . static::class, $from ]
-            )
+        return Result::err(
+            $ctx,
+            [ 'The `from` should be instance of: ' . static::class, $from ],
+            [ __FILE__, __LINE__ ]
         );
     }
 
@@ -100,102 +94,97 @@ class PipelinePipe
     /**
      * @return static|bool|null
      */
-    public static function fromMiddleware($from, array $refs = [])
+    public static function fromMiddleware($from, $ctx = null)
     {
         if (! ($from instanceof MiddlewareChain)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be instance of: ' . MiddlewareChain::class, $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be instance of: ' . MiddlewareChain::class, $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
         $instance = new static();
         $instance->middleware = $from;
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
     /**
      * @return static|bool|null
      */
-    public static function fromPipeline($from, array $refs = [])
+    public static function fromPipeline($from, $ctx = null)
     {
         if (! ($from instanceof PipelineChain)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be instance of: ' . PipelineChain::class, $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be instance of: ' . PipelineChain::class, $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
         $instance = new static();
         $instance->pipeline = $from;
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
 
     /**
      * @return static|bool|null
      */
-    public static function fromHandlerAction($from, array $refs = [])
+    public static function fromHandlerAction($from, $ctx = null)
     {
         if (! ($from instanceof GenericHandlerAction)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be instance of: ' . GenericHandlerAction::class, $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be instance of: ' . GenericHandlerAction::class, $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
         $instance = new static();
         $instance->handlerAction = $from;
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
     /**
      * @return static|bool|null
      */
-    public static function fromHandlerFallback($from, array $refs = [])
+    public static function fromHandlerFallback($from, $ctx = null)
     {
         if (! ($from instanceof GenericHandlerFallback)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be instance of: ' . GenericHandlerFallback::class, $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be instance of: ' . GenericHandlerFallback::class, $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
         $instance = new static();
         $instance->handlerFallback = $from;
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
     /**
      * @return static|bool|null
      */
-    public static function fromHandlerMiddleware($from, array $refs = [])
+    public static function fromHandlerMiddleware($from, $ctx = null)
     {
         if (! ($from instanceof GenericHandlerMiddleware)) {
-            return Lib::refsError(
-                $refs,
-                new LogicException(
-                    [ 'The `from` should be instance of: ' . GenericHandlerMiddleware::class, $from ]
-                )
+            return Result::err(
+                $ctx,
+                [ 'The `from` should be instance of: ' . GenericHandlerMiddleware::class, $from ],
+                [ __FILE__, __LINE__ ]
             );
         }
 
         $instance = new static();
         $instance->handlerMiddleware = $from;
 
-        return Lib::refsResult($refs, $instance);
+        return Result::ok($ctx, $instance);
     }
 
 
