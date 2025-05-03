@@ -1,11 +1,11 @@
 <?php
 
-namespace Gzhegow\Pipeline\Process;
+namespace Gzhegow\Pipeline\Core\Process;
 
-use Gzhegow\Pipeline\Pipe\PipelinePipe;
-use Gzhegow\Pipeline\Chain\PipelineChain;
+use Gzhegow\Pipeline\Core\Pipe\PipelinePipe;
+use Gzhegow\Pipeline\Core\Chain\PipelineChain;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
-use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
+use Gzhegow\Pipeline\Core\ProcessManager\PipelineProcessManagerInterface;
 
 
 class PipelineProcess extends AbstractProcess

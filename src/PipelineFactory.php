@@ -3,15 +3,15 @@
 namespace Gzhegow\Pipeline;
 
 use Gzhegow\Lib\Lib;
-use Gzhegow\Pipeline\Pipe\PipelinePipe;
-use Gzhegow\Pipeline\Process\PipelineProcess;
+use Gzhegow\Pipeline\Core\Pipe\PipelinePipe;
 use Gzhegow\Pipeline\Exception\LogicException;
-use Gzhegow\Pipeline\Process\MiddlewareProcess;
-use Gzhegow\Pipeline\Process\PipelineProcessInterface;
-use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
-use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
-use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
-use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
+use Gzhegow\Pipeline\Core\Process\PipelineProcess;
+use Gzhegow\Pipeline\Core\Process\MiddlewareProcess;
+use Gzhegow\Pipeline\Core\Process\PipelineProcessInterface;
+use Gzhegow\Pipeline\Core\Chain\PipelineChain as PipelineChain;
+use Gzhegow\Pipeline\Core\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\Core\Handler\Middleware\GenericHandlerMiddleware;
+use Gzhegow\Pipeline\Core\ProcessManager\PipelineProcessManagerInterface;
 
 
 class PipelineFactory implements PipelineFactoryInterface

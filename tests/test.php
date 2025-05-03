@@ -60,11 +60,11 @@ $factory = new \Gzhegow\Pipeline\PipelineFactory();
 
 // > создаем процессор
 // > его задача выполнять конечные функции, предоставляя зависимости для их вызова (например, при использовании контейнера DI)
-$processor = new \Gzhegow\Pipeline\Processor\PipelineProcessor($factory);
+$processor = new \Gzhegow\Pipeline\Core\Processor\PipelineProcessor($factory);
 
 // > создаем менеджер процессов
 // > его задача выполнять шаги процессов, созданных на основе цепочек, и передавать управление процессору
-$processManager = new \Gzhegow\Pipeline\ProcessManager\PipelineProcessManager(
+$processManager = new \Gzhegow\Pipeline\Core\ProcessManager\PipelineProcessManager(
     $factory,
     $processor
 );
@@ -91,7 +91,7 @@ $fn = function () use ($factory, $processManager, $ffn) {
     $pipeline = $factory->newPipeline();
 
     // > вызывать можно и статически, если перед этим сохранили фасад
-    // $pipeline = \Gzhegow\Pipeline\PipelineFacade::new();
+    // $pipeline = \Gzhegow\Pipeline\Core\PipelineFacade::new();
 
     // > добавляем действия в конвеер
     $pipeline
@@ -112,7 +112,7 @@ $fn = function () use ($factory, $processManager, $ffn) {
 
     // > либо иным способом
     // $result = $processManager->run($pipeline, $myInput, $myContext); // то же самое
-    // $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext); // то же самое
+    // $result = \Gzhegow\Pipeline\Core\Pipeline::run($pipeline, $myInput, $myContext); // то же самое
 
     $ffn->print('[ RESULT ]', $result);
 };
@@ -304,7 +304,7 @@ $fn = function () use ($factory, $ffn) {
     $middleware = $factory->newMiddleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class);
 
     // > вызывать можно и статически, если перед этим сохранили фасад
-    // $middleware = \Gzhegow\Pipeline\PipelineFacade::middleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class);
+    // $middleware = \Gzhegow\Pipeline\Core\PipelineFacade::middleware(\Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::class);
 
     // > добавлять вложенные pipeline/middleware можно также используя синтаксис ->startX()/->endX()
     $middleware

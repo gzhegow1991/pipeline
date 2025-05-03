@@ -2,13 +2,13 @@
 
 namespace Gzhegow\Pipeline;
 
-use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
-use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
-use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\Core\Chain\PipelineChain as PipelineChain;
+use Gzhegow\Pipeline\Core\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\Core\ProcessManager\PipelineProcessManagerInterface;
 
 
-class PipelineFacade implements PipelineFacadeInterface
+class PipelineFacade implements PipelineInterface
 {
     /**
      * @var PipelineFactoryInterface

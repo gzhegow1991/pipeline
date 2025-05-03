@@ -1,13 +1,13 @@
 <?php
 
-namespace Gzhegow\Pipeline\ProcessManager;
+namespace Gzhegow\Pipeline\Core\ProcessManager;
 
-use Gzhegow\Pipeline\Step\PipelineStep;
-use Gzhegow\Pipeline\Pipe\PipelinePipe;
+use Gzhegow\Pipeline\Core\Step\PipelineStep;
+use Gzhegow\Pipeline\Core\Pipe\PipelinePipe;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Exception\RuntimeException;
-use Gzhegow\Pipeline\Processor\PipelineProcessorInterface;
-use Gzhegow\Pipeline\Process\PipelineProcessInterface;
+use Gzhegow\Pipeline\Core\Processor\PipelineProcessorInterface;
+use Gzhegow\Pipeline\Core\Process\PipelineProcessInterface;
 use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
 
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace Gzhegow\Pipeline\Chain;
+namespace Gzhegow\Pipeline\Core\Chain;
 
-use Gzhegow\Pipeline\Pipe\PipelinePipe;
-use Gzhegow\Pipeline\Handler\GenericHandler;
-use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
-use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\Core\Pipe\PipelinePipe;
+use Gzhegow\Pipeline\Core\Handler\GenericHandler;
+use Gzhegow\Pipeline\Core\Chain\PipelineChain as PipelineChain;
+use Gzhegow\Pipeline\Core\Chain\MiddlewareChain as MiddlewareChain;
 
 
 interface PipelineChainInterface

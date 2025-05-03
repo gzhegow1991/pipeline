@@ -1,11 +1,11 @@
 <?php
 
-namespace Gzhegow\Pipeline\Step;
+namespace Gzhegow\Pipeline\Core\Step;
 
-use Gzhegow\Pipeline\Pipe\PipelinePipe;
-use Gzhegow\Pipeline\Handler\GenericHandler;
-use Gzhegow\Pipeline\Chain\PipelineChainInterface;
-use Gzhegow\Pipeline\Process\PipelineProcessInterface;
+use Gzhegow\Pipeline\Core\Pipe\PipelinePipe;
+use Gzhegow\Pipeline\Core\Handler\GenericHandler;
+use Gzhegow\Pipeline\Core\Chain\PipelineChainInterface;
+use Gzhegow\Pipeline\Core\Process\PipelineProcessInterface;
 
 
 class PipelineStep

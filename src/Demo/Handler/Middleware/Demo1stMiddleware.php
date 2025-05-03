@@ -2,7 +2,7 @@
 
 namespace Gzhegow\Pipeline\Demo\Handler\Middleware;
 
-use Gzhegow\Pipeline\Process\PipelineProcessInterface;
+use Gzhegow\Pipeline\Core\Process\PipelineProcessInterface;
 
 
 class Demo1stMiddleware

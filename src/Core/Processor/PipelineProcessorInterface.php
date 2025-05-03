@@ -1,11 +1,11 @@
 <?php
 
-namespace Gzhegow\Pipeline\Processor;
+namespace Gzhegow\Pipeline\Core\Processor;
 
-use Gzhegow\Pipeline\Process\PipelineProcessInterface;
-use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
-use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
-use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
+use Gzhegow\Pipeline\Core\Process\PipelineProcessInterface;
+use Gzhegow\Pipeline\Core\Handler\Action\GenericHandlerAction;
+use Gzhegow\Pipeline\Core\Handler\Fallback\GenericHandlerFallback;
+use Gzhegow\Pipeline\Core\Handler\Middleware\GenericHandlerMiddleware;
 
 
 interface PipelineProcessorInterface

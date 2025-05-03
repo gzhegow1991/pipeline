@@ -2,12 +2,12 @@
 
 namespace Gzhegow\Pipeline;
 
-use Gzhegow\Pipeline\Process\PipelineProcess;
-use Gzhegow\Pipeline\Process\MiddlewareProcess;
-use Gzhegow\Pipeline\Process\PipelineProcessInterface;
-use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
-use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
-use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\Core\Process\PipelineProcess;
+use Gzhegow\Pipeline\Core\Process\MiddlewareProcess;
+use Gzhegow\Pipeline\Core\Process\PipelineProcessInterface;
+use Gzhegow\Pipeline\Core\Chain\PipelineChain as PipelineChain;
+use Gzhegow\Pipeline\Core\ProcessManager\PipelineProcessManagerInterface;
+use Gzhegow\Pipeline\Core\Chain\MiddlewareChain as MiddlewareChain;
 
 
 interface PipelineFactoryInterface

@@ -1,15 +1,15 @@
 <?php
 
-namespace Gzhegow\Pipeline\Pipe;
+namespace Gzhegow\Pipeline\Core\Pipe;
 
-use Gzhegow\Pipeline\Chain\PipelineChain;
+use Gzhegow\Pipeline\Core\Chain\PipelineChain;
 use Gzhegow\Lib\Modules\Php\Result\Result;
-use Gzhegow\Pipeline\Chain\MiddlewareChain;
-use Gzhegow\Pipeline\Handler\GenericHandler;
-use Gzhegow\Pipeline\Chain\PipelineChainInterface;
-use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
-use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
-use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
+use Gzhegow\Pipeline\Core\Chain\MiddlewareChain;
+use Gzhegow\Pipeline\Core\Handler\GenericHandler;
+use Gzhegow\Pipeline\Core\Chain\PipelineChainInterface;
+use Gzhegow\Pipeline\Core\Handler\Action\GenericHandlerAction;
+use Gzhegow\Pipeline\Core\Handler\Fallback\GenericHandlerFallback;
+use Gzhegow\Pipeline\Core\Handler\Middleware\GenericHandlerMiddleware;
 
 
 /**

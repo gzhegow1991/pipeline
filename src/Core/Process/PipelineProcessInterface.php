@@ -1,6 +1,6 @@
 <?php
 
-namespace Gzhegow\Pipeline\Process;
+namespace Gzhegow\Pipeline\Core\Process;
 
 
 interface PipelineProcessInterface

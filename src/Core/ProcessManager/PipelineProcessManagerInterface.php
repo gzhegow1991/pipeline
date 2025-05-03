@@ -1,8 +1,8 @@
 <?php
 
-namespace Gzhegow\Pipeline\ProcessManager;
+namespace Gzhegow\Pipeline\Core\ProcessManager;
 
-use Gzhegow\Pipeline\Process\PipelineProcessInterface;
+use Gzhegow\Pipeline\Core\Process\PipelineProcessInterface;
 
 
 interface PipelineProcessManagerInterface

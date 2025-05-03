@@ -1,12 +1,12 @@
 <?php
 
-namespace Gzhegow\Pipeline\Chain;
+namespace Gzhegow\Pipeline\Core\Chain;
 
-use Gzhegow\Pipeline\Pipe\PipelinePipe;
-use Gzhegow\Pipeline\Handler\GenericHandler;
+use Gzhegow\Pipeline\Core\Pipe\PipelinePipe;
+use Gzhegow\Pipeline\Core\Handler\GenericHandler;
 use Gzhegow\Pipeline\Exception\LogicException;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
-use Gzhegow\Pipeline\Handler\Middleware\GenericHandlerMiddleware;
+use Gzhegow\Pipeline\Core\Handler\Middleware\GenericHandlerMiddleware;
 
 
 class MiddlewareChain extends AbstractPipelineChain

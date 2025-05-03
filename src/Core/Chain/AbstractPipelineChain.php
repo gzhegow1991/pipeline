@@ -1,16 +1,16 @@
 <?php
 
-namespace Gzhegow\Pipeline\Chain;
+namespace Gzhegow\Pipeline\Core\Chain;
 
-use Gzhegow\Pipeline\Pipe\PipelinePipe;
-use Gzhegow\Pipeline\Handler\GenericHandler;
+use Gzhegow\Pipeline\Core\Pipe\PipelinePipe;
+use Gzhegow\Pipeline\Core\Handler\GenericHandler;
 use Gzhegow\Pipeline\PipelineFactoryInterface;
 use Gzhegow\Pipeline\Exception\RuntimeException;
-use Gzhegow\Pipeline\Handler\Action\GenericHandlerAction;
-use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
-use Gzhegow\Pipeline\Handler\Fallback\GenericHandlerFallback;
-use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
-use Gzhegow\Pipeline\ProcessManager\PipelineProcessManagerInterface;
+use Gzhegow\Pipeline\Core\Handler\Action\GenericHandlerAction;
+use Gzhegow\Pipeline\Core\Chain\PipelineChain as PipelineChain;
+use Gzhegow\Pipeline\Core\Handler\Fallback\GenericHandlerFallback;
+use Gzhegow\Pipeline\Core\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\Core\ProcessManager\PipelineProcessManagerInterface;
 
 
 abstract class AbstractPipelineChain implements PipelineChainInterface

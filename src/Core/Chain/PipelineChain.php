@@ -1,9 +1,9 @@
 <?php
 
-namespace Gzhegow\Pipeline\Chain;
+namespace Gzhegow\Pipeline\Core\Chain;
 
-use Gzhegow\Pipeline\Pipe\PipelinePipe;
-use Gzhegow\Pipeline\Handler\GenericHandler;
+use Gzhegow\Pipeline\Core\Pipe\PipelinePipe;
+use Gzhegow\Pipeline\Core\Handler\GenericHandler;
 
 
 class PipelineChain extends AbstractPipelineChain

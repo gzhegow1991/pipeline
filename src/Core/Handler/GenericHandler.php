@@ -1,6 +1,6 @@
 <?php
 
-namespace Gzhegow\Pipeline\Handler;
+namespace Gzhegow\Pipeline\Core\Handler;
 
 use Gzhegow\Lib\Lib;
 use Gzhegow\Lib\Modules\Php\Result\Result;

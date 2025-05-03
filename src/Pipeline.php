@@ -2,9 +2,9 @@
 
 namespace Gzhegow\Pipeline;
 
-use Gzhegow\Pipeline\Chain\PipelineChain as PipelineChain;
 use Gzhegow\Pipeline\Exception\Runtime\PipelineException;
-use Gzhegow\Pipeline\Chain\MiddlewareChain as MiddlewareChain;
+use Gzhegow\Pipeline\Core\Chain\PipelineChain as PipelineChain;
+use Gzhegow\Pipeline\Core\Chain\MiddlewareChain as MiddlewareChain;
 
 
 class Pipeline
@@ -35,7 +35,7 @@ class Pipeline
     }
 
 
-    public static function setFacade(?PipelineFacadeInterface $facade) : ?PipelineFacadeInterface
+    public static function setFacade(?PipelineInterface $facade) : ?PipelineInterface
     {
         $last = static::$facade;
 
@@ -45,7 +45,7 @@ class Pipeline
     }
 
     /**
-     * @var PipelineFacadeInterface
+     * @var PipelineInterface
      */
     protected static $facade;
 }
