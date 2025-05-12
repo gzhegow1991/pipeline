@@ -79,7 +79,7 @@ $facade = new \Gzhegow\Pipeline\PipelineFacade(
 
 // >>> ТЕСТЫ
 
-// >>> TEST
+// > TEST
 // > цепочка может состоять из одного или нескольких действий
 $fn = function () use ($factory, $processManager, $ffn) {
     $ffn->print('[ TEST 1 ]');
@@ -126,7 +126,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > действия могут передавать результат выполнения из одного в другое
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 2 ]');
@@ -159,7 +159,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > выброшенную ошибку можно превратить в результат используя fallback
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 3 ]');
@@ -192,7 +192,7 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > цепочка может начинаться с исключения, которое нужно обработать
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 4 ]');
@@ -224,7 +224,7 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > если fallback возвращает NULL, то система попробует поймать исключение следующим fallback
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 5 ]');
@@ -259,7 +259,7 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoThrowableFallback::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > если ни один из fallback не обработает ошибку, ошибка будет выброшена наружу
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 6 ]');
@@ -304,7 +304,7 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > к любой цепочке можно подключить middleware
 // > + они как фильтры, могут пропустить дальнейшие шаги в конвеере
 // > + они как события, могут выполнить дополнительные действия или подготовить входные данные следуюших шагов
@@ -355,7 +355,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > middleware может предотвратить выполнение цепочки (то есть уже написанный код можно отменить фильтром, не редактируя его)
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 8 ]');
@@ -396,7 +396,7 @@ $test->expectStdout('
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > цепочка может состоять даже из цепочек
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 9 ]');
@@ -443,7 +443,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > может состоять из middleware вложенных друг в друга
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 10 ]');
@@ -481,7 +481,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > что не отменяет возможности, что в одном из действий произойдет ошибка, которая должна быть поймана, а цепочка - продолжиться
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 11 ]');
@@ -522,7 +522,7 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > а вообще, даже из цепочек-в-цепочках может состоять
 // > вообще, этот конструктор нужен, чтобы ограничивать действие middleware только на несколько действий, а не на все
 $fn = function () use ($ffn) {
@@ -609,7 +609,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 $test->run();
 
 
-// >>> TEST
+// > TEST
 // > исключение возникло в глубине цепочки и не было обработано, но в конце добавлены Fallback, которые его поймают
 $fn = function () use ($ffn) {
     $ffn->print('[ TEST 13 ]');
