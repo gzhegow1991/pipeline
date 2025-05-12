@@ -34,10 +34,12 @@ ini_set('memory_limit', '32M');
 
 
 // > настраиваем обработку ошибок
-\Gzhegow\Lib\Lib::errorHandler()
+\Gzhegow\Lib\Lib::entrypoint()
     ->setDirRoot(__DIR__ . '/..')
     //
     ->useErrorReporting()
+    ->useMemoryLimit()
+    ->useTimeLimit()
     ->useErrorHandler()
     ->useExceptionHandler()
 ;
@@ -63,20 +65,17 @@ $ffn = new class {
     }
 
 
-    function assert_stdout(
-        \Closure $fn, array $fnArgs = [],
-        string $expectedStdout = null
-    ) : void
+    function test(\Closure $fn, array $args = []) : \Gzhegow\Lib\Modules\Test\TestRunner\TestRunner
     {
         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
-        \Gzhegow\Lib\Lib::test()->assertStdout(
-            $trace,
-            $fn, $fnArgs,
-            $expectedStdout
-        );
+        return \Gzhegow\Lib\Lib::test()->test()
+            ->fn($fn, $args)
+            ->trace($trace)
+        ;
     }
 };
+
 
 
 // >>> ЗАПУСКАЕМ!
@@ -106,6 +105,9 @@ $facade = new \Gzhegow\Pipeline\PipelineFacade(
 // > но правильный путь - это всё-таки передавать фасад зависимостью, позволяя его подменить, а не фиксируя статику в коде
 \Gzhegow\Pipeline\Pipeline::setFacade($facade);
 
+
+
+// >>> ТЕСТЫ
 
 // >>> TEST
 // > цепочка может состоять из одного или нескольких действий
@@ -142,7 +144,8 @@ $fn = function () use ($factory, $processManager, $ffn) {
 
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 1 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
@@ -150,6 +153,8 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke result."
 '
 );
+$test->run();
+
 
 // >>> TEST
 // > действия могут передавать результат выполнения из одного в другое
@@ -173,13 +178,16 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 2 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 "[ RESULT ]" | "any data 2"
 ');
+$test->run();
+
 
 // >>> TEST
 // > выброшенную ошибку можно превратить в результат используя fallback
@@ -203,13 +211,16 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 3 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoLogicExceptionAction::__invoke
 Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ');
+$test->run();
+
 
 // >>> TEST
 // > цепочка может начинаться с исключения, которое нужно обработать
@@ -233,12 +244,15 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 4 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ');
+$test->run();
+
 
 // >>> TEST
 // > если fallback возвращает NULL, то система попробует поймать исключение следующим fallback
@@ -263,7 +277,8 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 5 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::__invoke
@@ -271,6 +286,8 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoSkipFallback::__invoke
 Gzhegow\Pipeline\Demo\Handler\Fallback\DemoThrowableFallback::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoThrowableFallback::__invoke result."
 ');
+$test->run();
+
 
 // >>> TEST
 // > если ни один из fallback не обработает ошибку, ошибка будет выброшена наружу
@@ -304,7 +321,8 @@ $fn = function () use ($ffn) {
     }
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 6 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoExceptionAction::__invoke
@@ -313,6 +331,8 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 "[ CATCH ]" | "Gzhegow\Pipeline\Exception\Exception" | "Hello, World!"
 "[ RESULT ]" | NULL
 ');
+$test->run();
+
 
 // >>> TEST
 // > к любой цепочке можно подключить middleware
@@ -351,7 +371,8 @@ $fn = function () use ($factory, $ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 7 ]"
 
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -361,6 +382,8 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke
 @after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke result."
 ');
+$test->run();
+
 
 // >>> TEST
 // > middleware может предотвратить выполнение цепочки (то есть уже написанный код можно отменить фильтром, не редактируя его)
@@ -390,7 +413,8 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 8 ]"
 
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -399,6 +423,8 @@ $ffn->assert_stdout($fn, [], '
 @after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Middleware\DemoOmitMiddleware::__invoke result."
 ');
+$test->run();
+
 
 // >>> TEST
 // > цепочка может состоять даже из цепочек
@@ -433,7 +459,8 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 9 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
@@ -443,6 +470,8 @@ Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo1stAction::__invoke result."
 ');
+$test->run();
+
 
 // >>> TEST
 // > может состоять из middleware вложенных друг в друга
@@ -467,7 +496,8 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 10 ]"
 
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -478,6 +508,8 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
 @after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke result."
 ');
+$test->run();
+
 
 // >>> TEST
 // > что не отменяет возможности, что в одном из действий произойдет ошибка, которая должна быть поймана, а цепочка - продолжиться
@@ -504,7 +536,8 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 11 ]"
 
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -516,6 +549,8 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 @after :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ');
+$test->run();
+
 
 // >>> TEST
 // > а вообще, даже из цепочек-в-цепочках может состоять
@@ -565,7 +600,8 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$ffn->test($fn);
+$test->expectStdout('
 "[ TEST 12 ]"
 
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
@@ -600,6 +636,7 @@ Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke
 Gzhegow\Pipeline\Demo\Handler\Action\DemoPassInputToResultAction::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Action\Demo2ndAction::__invoke result."
 ');
+$test->run();
 
 
 // >>> TEST
@@ -627,7 +664,8 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->assert_stdout($fn, [], '
+$test = $ffn->test($fn);
+$test->expectStdout('
 "[ TEST 13 ]"
 
 @before :: Gzhegow\Pipeline\Demo\Handler\Middleware\Demo1stMiddleware::__invoke
@@ -639,5 +677,6 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoRuntimeExceptionFallback::__invoke
 Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ');
+$test->expectStdout();
 ```
 
