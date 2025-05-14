@@ -570,7 +570,7 @@ $fn = function () use ($ffn) {
     $result = \Gzhegow\Pipeline\Pipeline::run($pipeline, $myInput, $myContext);
     $ffn->print('[ RESULT ]', $result);
 };
-$ffn->test($fn);
+$test = $ffn->test($fn);
 $test->expectStdout('
 "[ TEST 12 ]"
 
@@ -647,4 +647,4 @@ Gzhegow\Pipeline\Demo\Handler\Fallback\DemoRuntimeExceptionFallback::__invoke
 Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke
 "[ RESULT ]" | "Gzhegow\Pipeline\Demo\Handler\Fallback\DemoLogicExceptionFallback::__invoke result."
 ');
-$test->expectStdout();
+$test->run();
