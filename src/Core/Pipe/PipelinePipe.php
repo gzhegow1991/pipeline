@@ -2,8 +2,9 @@
 
 namespace Gzhegow\Pipeline\Core\Pipe;
 
-use Gzhegow\Pipeline\Core\Chain\PipelineChain;
+use Gzhegow\Lib\Modules\Php\Result\Ret;
 use Gzhegow\Lib\Modules\Php\Result\Result;
+use Gzhegow\Pipeline\Core\Chain\PipelineChain;
 use Gzhegow\Pipeline\Core\Chain\MiddlewareChain;
 use Gzhegow\Pipeline\Core\Handler\GenericHandler;
 use Gzhegow\Pipeline\Core\Chain\PipelineChainInterface;
@@ -50,41 +51,45 @@ class PipelinePipe
 
 
     /**
+     * @param Ret $ret
+     *
      * @return static|bool|null
      */
-    public static function from($from, $ctx = null)
+    public static function from($from, $ret = null)
     {
-        Result::parse($cur);
+        $retCur = Result::asValue();
 
         $instance = null
-            ?? static::fromStatic($from, $cur)
+            ?? static::fromStatic($from, $retCur)
             //
-            ?? static::fromMiddleware($from, $cur)
-            ?? static::fromPipeline($from, $cur)
+            ?? static::fromMiddleware($from, $retCur)
+            ?? static::fromPipeline($from, $retCur)
             //
-            ?? static::fromHandlerAction($from, $cur)
-            ?? static::fromHandlerFallback($from, $cur)
-            ?? static::fromHandlerMiddleware($from, $cur);
+            ?? static::fromHandlerAction($from, $retCur)
+            ?? static::fromHandlerFallback($from, $retCur)
+            ?? static::fromHandlerMiddleware($from, $retCur);
 
-        if ($cur->isErr()) {
-            return Result::err($ctx, $cur);
+        if ($retCur->isErr()) {
+            return Result::err($ret, $retCur);
         }
 
-        return Result::ok($ctx, $instance);
+        return Result::ok($ret, $instance);
     }
 
 
     /**
+     * @param Ret $ret
+     *
      * @return static|bool|null
      */
-    public static function fromStatic($from, $ctx = null)
+    public static function fromStatic($from, $ret = null)
     {
         if ($from instanceof static) {
-            return Result::ok($ctx, $from);
+            return Result::ok($ret, $from);
         }
 
         return Result::err(
-            $ctx,
+            $ret,
             [ 'The `from` should be instance of: ' . static::class, $from ],
             [ __FILE__, __LINE__ ]
         );
@@ -92,13 +97,15 @@ class PipelinePipe
 
 
     /**
+     * @param Ret $ret
+     *
      * @return static|bool|null
      */
-    public static function fromMiddleware($from, $ctx = null)
+    public static function fromMiddleware($from, $ret = null)
     {
         if (! ($from instanceof MiddlewareChain)) {
             return Result::err(
-                $ctx,
+                $ret,
                 [ 'The `from` should be instance of: ' . MiddlewareChain::class, $from ],
                 [ __FILE__, __LINE__ ]
             );
@@ -107,17 +114,19 @@ class PipelinePipe
         $instance = new static();
         $instance->middleware = $from;
 
-        return Result::ok($ctx, $instance);
+        return Result::ok($ret, $instance);
     }
 
     /**
+     * @param Ret $ret
+     *
      * @return static|bool|null
      */
-    public static function fromPipeline($from, $ctx = null)
+    public static function fromPipeline($from, $ret = null)
     {
         if (! ($from instanceof PipelineChain)) {
             return Result::err(
-                $ctx,
+                $ret,
                 [ 'The `from` should be instance of: ' . PipelineChain::class, $from ],
                 [ __FILE__, __LINE__ ]
             );
@@ -126,18 +135,20 @@ class PipelinePipe
         $instance = new static();
         $instance->pipeline = $from;
 
-        return Result::ok($ctx, $instance);
+        return Result::ok($ret, $instance);
     }
 
 
     /**
+     * @param Ret $ret
+     *
      * @return static|bool|null
      */
-    public static function fromHandlerAction($from, $ctx = null)
+    public static function fromHandlerAction($from, $ret = null)
     {
         if (! ($from instanceof GenericHandlerAction)) {
             return Result::err(
-                $ctx,
+                $ret,
                 [ 'The `from` should be instance of: ' . GenericHandlerAction::class, $from ],
                 [ __FILE__, __LINE__ ]
             );
@@ -146,17 +157,19 @@ class PipelinePipe
         $instance = new static();
         $instance->handlerAction = $from;
 
-        return Result::ok($ctx, $instance);
+        return Result::ok($ret, $instance);
     }
 
     /**
+     * @param Ret $ret
+     *
      * @return static|bool|null
      */
-    public static function fromHandlerFallback($from, $ctx = null)
+    public static function fromHandlerFallback($from, $ret = null)
     {
         if (! ($from instanceof GenericHandlerFallback)) {
             return Result::err(
-                $ctx,
+                $ret,
                 [ 'The `from` should be instance of: ' . GenericHandlerFallback::class, $from ],
                 [ __FILE__, __LINE__ ]
             );
@@ -165,17 +178,19 @@ class PipelinePipe
         $instance = new static();
         $instance->handlerFallback = $from;
 
-        return Result::ok($ctx, $instance);
+        return Result::ok($ret, $instance);
     }
 
     /**
+     * @param Ret $ret
+     *
      * @return static|bool|null
      */
-    public static function fromHandlerMiddleware($from, $ctx = null)
+    public static function fromHandlerMiddleware($from, $ret = null)
     {
         if (! ($from instanceof GenericHandlerMiddleware)) {
             return Result::err(
-                $ctx,
+                $ret,
                 [ 'The `from` should be instance of: ' . GenericHandlerMiddleware::class, $from ],
                 [ __FILE__, __LINE__ ]
             );
@@ -184,7 +199,7 @@ class PipelinePipe
         $instance = new static();
         $instance->handlerMiddleware = $from;
 
-        return Result::ok($ctx, $instance);
+        return Result::ok($ret, $instance);
     }
 
 
